@@ -1,6 +1,6 @@
 {
   "name": "live-number-formatter",
-  "private": true,
+  "private": false,
   "version": "0.0.1",
   "type": "module",
   "homepage": "https://github.com/lemon3",
