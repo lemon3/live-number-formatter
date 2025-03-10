@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.3
+### added
+- startValue option
+- allowComma option
+
+### changed
+- optimizations
+
 ## v0.0.2
 ### added
 - options:

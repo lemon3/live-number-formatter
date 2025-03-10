@@ -13,6 +13,7 @@ import {
 const INPUT = 'input';
 
 const defaults = {
+  startValue: 1012.78,
   prefix: '€ ',
   suffix: '', // TODO: implement
   min: null,
@@ -20,7 +21,7 @@ const defaults = {
   minlength: null,
   maxlength: null,
   showAffixWhenEmpty: true,
-  allowComma: false, // TODO: implement
+  allowComma: true,
   ltr: true, // TODO: implement -> left to right, default: true
 };
 
@@ -33,9 +34,11 @@ class NumberClass extends Emitter implements Number {
   defaultPrevented: boolean;
   to: any;
   // private _selectedCharsCount: number;
-  private _value: string;
-  private _formattedValue: string;
-  isMinus: boolean;
+  private _value: string = '';
+  private _formattedValue: string = '';
+  isMinus: boolean = false;
+  arrows: string[] = [];
+  allowedKeys: string[] = [];
 
   constructor(el: any, options?: any) {
     super();
@@ -46,13 +49,8 @@ class NumberClass extends Emitter implements Number {
     this.selectionDirection = 'none';
     this.defaultPrevented = false;
     // this._selectedCharsCount = 0;
-    this.isMinus = false;
-
-    this._value = '';
-    this._formattedValue = '';
 
     this.allowedEvents = [INPUT];
-
     this.init();
   }
 
@@ -62,79 +60,60 @@ class NumberClass extends Emitter implements Number {
   //   this.element.dataset.value = el.value.replace(/\./g, '');
   // };
 
-  onblur = (evt: FocusEvent) => {
-    const el = evt.currentTarget as HTMLInputElement | null;
-    if (!el) return;
-
+  onblur = () => {
+    const el = this.element;
     if (',' === el.value.slice(-1)) {
       this.element.value = el.value.slice(0, -1);
     }
   };
 
   onkeydown = (evt: KeyboardEvent) => {
-    const el = evt.currentTarget as HTMLInputElement | null;
-    if (!el) return;
+    const el = this.element;
 
-    const key = evt.key;
-    const cursorStartPos = el.selectionStart || 0;
-    const cursorEndPos = el.selectionEnd || 0;
-    const multiSelect = cursorStartPos !== cursorEndPos;
-
-    // console.log(key);
+    let key = evt.key;
+    const cursorStart = el.selectionStart || 0;
+    const cursorEnd = el.selectionEnd || 0;
+    const multiSelect = cursorStart !== cursorEnd;
 
     // Check if the prefix is present and the cursor is within it
     const prefix = this.settings.prefix || '';
     const prefixLength = prefix.length || 0;
 
-    const arrows = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
-    // TODO: '+', '-', 'e',
-    const allowedKeys = [
-      ...arrows,
-      '.',
-      ',',
-      '0',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      'Backspace',
-      'Delete',
-      'Tab',
-      '-',
-    ];
-
     // Handle special keys
     if (
       ((evt.metaKey || evt.ctrlKey) && evt.key === 'c') ||
-      (evt.metaKey && !arrows.includes(key))
+      (evt.metaKey && !this.arrows.includes(key))
     ) {
       // Allow cmd+c (or ctrl+c) to copy text
       return;
     }
 
     // Prevent default behavior for disallowed keys
-    if (!allowedKeys.includes(key)) {
+    if (!this.allowedKeys.includes(key)) {
       evt.stopPropagation();
       evt.preventDefault();
       return false;
     }
 
-    let end = cursorEndPos;
-    let start = cursorStartPos;
+    if ('.' === key) key = ',';
+    const val = el.value;
+
+    // no double ','
+    if (key === ',' && val.includes(',')) {
+      evt.preventDefault();
+      return;
+    }
+
+    let end = cursorEnd;
+    let start = cursorStart;
 
     // Handle special keys
     switch (evt.key) {
       case 'ArrowLeft':
         if (evt.shiftKey) {
-          end = cursorEndPos;
+          // end = cursorEnd;
           start =
-            cursorStartPos -
-            (prefixLength && cursorStartPos <= prefixLength ? 0 : 1);
+            cursorStart - (prefixLength && cursorStart <= prefixLength ? 0 : 1);
           if (!multiSelect) {
             this.selectionDirection = 'left';
           }
@@ -166,13 +145,13 @@ class NumberClass extends Emitter implements Number {
         break;
 
       case 'ArrowUp':
-        end = cursorEndPos;
+        end = cursorEnd;
         start = prefixLength;
 
         if (evt.shiftKey) {
           if (multiSelect) {
             if ('right' === this.selectionDirection) {
-              start = end = cursorStartPos;
+              start = end = cursorStart;
               this.selectionDirection = 'none';
             }
           } else {
@@ -204,11 +183,11 @@ class NumberClass extends Emitter implements Number {
         break;
 
       case 'Backspace':
-        if (prefixLength && cursorStartPos < prefixLength) {
+        if (prefixLength && cursorStart < prefixLength) {
           el.setSelectionRange(prefixLength, end);
         } else if (
           prefixLength &&
-          cursorStartPos === prefixLength &&
+          cursorStart === prefixLength &&
           !multiSelect
         ) {
           evt.preventDefault();
@@ -223,11 +202,7 @@ class NumberClass extends Emitter implements Number {
       //   break;
 
       default:
-        if (
-          prefixLength &&
-          0 !== cursorStartPos &&
-          cursorStartPos < prefixLength
-        ) {
+        if (prefixLength && 0 !== cursorStart && cursorStart < prefixLength) {
           evt.preventDefault();
         }
         break;
@@ -245,9 +220,7 @@ class NumberClass extends Emitter implements Number {
 
   onbeforeinput = (evt: InputEvent) => {
     evt.preventDefault();
-
-    const el = evt.target as HTMLInputElement | null;
-    if (!el) return;
+    const el = this.element;
 
     let val = el.value;
     let startPosition = el.selectionStart;
@@ -257,12 +230,13 @@ class NumberClass extends Emitter implements Number {
       return;
     }
 
-    const inputData = evt.data;
+    let inputData = evt.data;
+    if ('.' === inputData) inputData = ',';
+
     const s = this.settings;
     let multiSelect = startPosition !== endPosition;
 
     if ('-' === inputData) {
-      // console.log(inputData, val, this._value);
       if (!this._value) return;
       let tmp;
       if (this.isMinus) {
@@ -328,7 +302,6 @@ class NumberClass extends Emitter implements Number {
       return;
     }
 
-    console.log('data to change', val);
     this.dataChanged(evt, val);
   };
 
@@ -343,6 +316,7 @@ class NumberClass extends Emitter implements Number {
   // }
 
   dataChanged(evt: InputEvent, val: string) {
+    console.log('dataChanged to:', val);
     const el = evt.target as HTMLInputElement | null;
     if (!el) return;
 
@@ -352,12 +326,8 @@ class NumberClass extends Emitter implements Number {
     const endPosition = el.selectionEnd || 0;
     const multiSelect = startPosition !== endPosition;
 
-    console.log('>>>', val);
-    const parsed = parseLocaleNumber(val);
-
     const formattedVal = formatNumber(
       val,
-      parsed,
       this.settings.prefix,
       this.settings.showAffixWhenEmpty
     );
@@ -382,8 +352,14 @@ class NumberClass extends Emitter implements Number {
 
     this.setMinus(formattedVal.indexOf('-') > 0);
     el.value = formattedVal;
+    const parsed = parseLocaleNumber(formattedVal);
+
+    // console.log('>>>', cursorPos);
 
     if (cursorPos === null) cursorPos = formattedLen;
+    else if (cursorPos < this.settings.prefix.length)
+      cursorPos = this.settings.prefix.length;
+
     el.setSelectionRange(cursorPos, cursorPos);
 
     const value = isNaN(parsed) ? '' : parsed.toString();
@@ -403,12 +379,16 @@ class NumberClass extends Emitter implements Number {
   }
 
   setValue(value: number | string = '') {
-    const parsed = Number(value);
+    let parsed = Number(value);
     if (isNaN(parsed)) return;
-    this.element.value = '' + parsed;
-    const bi = new InputEvent('input');
-    this.element.dispatchEvent(bi);
-    this.dataChanged(bi, '' + parsed);
+    if (!this.settings.allowComma) {
+      parsed = Math.floor(parsed);
+    }
+    let formatted = Number(parsed).toLocaleString('de-DE');
+    this.element.value = formatted;
+    const inputEvent = new InputEvent('input');
+    this.element.dispatchEvent(inputEvent);
+    this.dataChanged(inputEvent, '' + formatted);
   }
 
   getFormattedValue() {
@@ -434,6 +414,32 @@ class NumberClass extends Emitter implements Number {
       this.settings.prefix = '';
     }
 
+    this.arrows = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
+
+    // TODO: '+', 'e',
+    this.allowedKeys = [
+      ...this.arrows,
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      'Backspace',
+      'Delete',
+      'Tab',
+      '-',
+    ];
+
+    // if comma is allowed, add keys to array
+    if (this.settings.allowComma) {
+      this.allowedKeys = [...this.allowedKeys, '.', ','];
+    }
+
     this.settings.originalType = this.element.type;
     // change to text if set to type number
     this.element.type = 'text';
@@ -442,6 +448,10 @@ class NumberClass extends Emitter implements Number {
     this.element.addEventListener('keydown', this.onkeydown);
     this.element.addEventListener('blur', this.onblur);
     this.element.addEventListener('beforeinput', this.onbeforeinput);
+
+    if (this.settings.startValue) {
+      this.setValue(this.settings.startValue);
+    }
   }
 }
 

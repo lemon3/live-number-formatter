@@ -107,13 +107,13 @@ const parseLocaleNumber = (localeString: string): number => {
 
 const formatNumber = (
   value: string | number,
-  number: number,
   prefix: string = '',
   showAffixWhenEmpty: boolean = false,
   comma: string = ',',
   separator: string = '.'
 ): string => {
   value = ('' + value).trim();
+  let number = parseLocaleNumber(value);
 
   if (isNaN(number)) {
     return prefix.length && showAffixWhenEmpty ? prefix : '';
