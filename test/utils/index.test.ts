@@ -4,6 +4,11 @@ import {
   insertCharsAt,
   deleteCharAt,
   replaceCharAt,
+  isInRange,
+  checkStringLength,
+  isStringOrNumber,
+  toShort,
+  toLong,
 } from '../../src/utils';
 
 describe('insertCharsAt', () => {
@@ -255,5 +260,159 @@ describe('parseLocaleNumber', () => {
 
   it('should remove all non numbers', () => {
     expect(parseLocaleNumber('123 j 456')).toBe(123456);
+  });
+});
+
+describe('isInRange', () => {
+  it('returns true when no bounds are defined', () => {
+    expect(isInRange(10)).toBe(true);
+  });
+
+  it('returns true when value is greater than or equal to min', () => {
+    expect(isInRange(10, 5)).toBe(true);
+  });
+
+  it('returns false when value is less than min', () => {
+    expect(isInRange(5, 10)).toBe(false);
+  });
+
+  it('returns true when value is less than or equal to max', () => {
+    expect(isInRange(5, undefined, 10)).toBe(true);
+  });
+
+  it('returns false when value is greater than max', () => {
+    expect(isInRange(15, undefined, 10)).toBe(false);
+  });
+
+  it('returns true when value is within range', () => {
+    expect(isInRange(5, 0, 10)).toBe(true);
+  });
+
+  it('returns false when value is outside range', () => {
+    expect(isInRange(15, 0, 10)).toBe(false);
+  });
+
+  it('returns false when value is equal to min', () => {
+    expect(isInRange(5, 5, 10)).toBe(true);
+  });
+
+  it('returns false when value is equal to max', () => {
+    expect(isInRange(10, 5, 10)).toBe(true);
+  });
+});
+
+describe('checkStringLength', () => {
+  it('returns true when no bounds are defined', () => {
+    expect(checkStringLength('hello')).toBe(true);
+  });
+
+  it('returns true when length is greater than or equal to min', () => {
+    expect(checkStringLength('hello', 3)).toBe(true);
+  });
+
+  it('returns false when length is less than min', () => {
+    expect(checkStringLength('hello', 10)).toBe(false);
+  });
+
+  it('returns true when length is less than or equal to max', () => {
+    expect(checkStringLength('hello', undefined, 10)).toBe(true);
+  });
+
+  it('returns false when length is greater than max', () => {
+    expect(checkStringLength('hello', undefined, 3)).toBe(false);
+  });
+
+  it('returns true when length is within range', () => {
+    expect(checkStringLength('hello', 3, 10)).toBe(true);
+  });
+
+  it('returns false when length is outside range', () => {
+    expect(checkStringLength('hello', 10, 20)).toBe(false);
+  });
+
+  it('returns true when length is equal to min', () => {
+    expect(checkStringLength('abc', 3, 10)).toBe(true);
+  });
+
+  it('returns true when length is equal to max', () => {
+    expect(checkStringLength('abcdefghij', 3, 10)).toBe(true);
+  });
+});
+
+describe('isStringOrNumber', () => {
+  it('returns true for strings', () => {
+    expect(isStringOrNumber('hello')).toBe(true);
+  });
+
+  it('returns true for numbers', () => {
+    expect(isStringOrNumber(123)).toBe(true);
+  });
+
+  it('returns false for booleans', () => {
+    expect(isStringOrNumber(true)).toBe(false);
+  });
+
+  it('returns false for objects', () => {
+    expect(isStringOrNumber({})).toBe(false);
+  });
+
+  it('returns false for null', () => {
+    expect(isStringOrNumber(null)).toBe(false);
+  });
+
+  it('returns false for undefined', () => {
+    expect(isStringOrNumber(undefined)).toBe(false);
+  });
+});
+
+describe('toShort', () => {
+  it('returns true when string is too short', () => {
+    expect(toShort('hello', 6)).toBe(true);
+  });
+
+  it('returns false when string is long enough', () => {
+    expect(toShort('hello', 3)).toBe(false);
+  });
+
+  it('returns true when string is empty', () => {
+    expect(toShort('', 1)).toBe(true);
+  });
+
+  it('throws error when string is not a string', () => {
+    // @ts-ignore
+    expect(() => toShort(123, 1)).toThrowError('Input must be a string');
+  });
+
+  it('throws error when minLength is not a number', () => {
+    // @ts-ignore
+    expect(() => toShort('hello', 'a')).toThrowError(
+      'Minimum length must be a number'
+    );
+  });
+});
+
+describe('toLong', () => {
+  it('returns true when string is too long', () => {
+    expect(toLong('hello', 4)).toBe(true);
+  });
+
+  it('returns false when string shorter', () => {
+    expect(toLong('hello', 8)).toBe(false);
+  });
+
+  it('returns false when string is empty', () => {
+    expect(toLong('', 1)).toBe(false);
+  });
+
+  it('throws error when string is not a string', () => {
+    // @ts-ignore
+    expect(() => toLong(123, 1)).toThrowError('Input must be a string');
+  });
+
+  it('throws error when maxLength is not a number', () => {
+    // @ts-ignore
+    expect(() => toLong('hello', 'a')).toThrowError(
+      'returns true when string is empty length must be a number'
+    );
   });
 });

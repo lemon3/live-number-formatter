@@ -6,6 +6,11 @@ import {
   replaceCharAt,
   formatNumber,
   parseLocaleNumber,
+  // toShort,
+  // toLong,
+  // isInRange,
+  // checkStringLength,
+  isStringOrNumber,
 } from './utils';
 
 // event names for emitting
@@ -14,12 +19,13 @@ const INPUT = 'input';
 const defaults = {
   prefix: '€ ',
   suffix: '', // TODO: implement
-  max: 9999999, // TODO: implement
-  min: 0, // TODO: implement
-  minlength: null, // TODO: implement
-  maxlength: null, // TODO: implement
+  min: null,
+  max: null,
+  minlength: 0,
+  maxlength: 6,
+  showAffixWhenEmpty: true,
+  allowComma: false, // TODO: implement
   ltr: true, // TODO: implement -> left to right, default: true
-  showAffixWhenEmpty: false, // TODO: implement
 };
 
 class NumberClass extends Emitter implements Number {
@@ -30,9 +36,10 @@ class NumberClass extends Emitter implements Number {
   selectionDirection: string;
   defaultPrevented: boolean;
   to: any;
-  selectedCharsCount: number;
+  // private _selectedCharsCount: number;
   private _value: string;
   private _formattedValue: string;
+  isMinus: boolean;
 
   constructor(el: any, options?: any) {
     super();
@@ -42,7 +49,8 @@ class NumberClass extends Emitter implements Number {
 
     this.selectionDirection = 'none';
     this.defaultPrevented = false;
-    this.selectedCharsCount = 0;
+    // this._selectedCharsCount = 0;
+    this.isMinus = false;
 
     this._value = '';
     this._formattedValue = '';
@@ -67,16 +75,6 @@ class NumberClass extends Emitter implements Number {
     }
   };
 
-  calcSelectionCount(el: HTMLInputElement) {
-    if (this.to) clearTimeout(this.to);
-    this.to = setTimeout(() => {
-      const start = el.selectionStart || 0;
-      const end = el.selectionEnd || 0;
-      this.selectedCharsCount = Math.abs(end - start);
-      clearTimeout(this.to);
-    }, 0);
-  }
-
   onkeydown = (evt: KeyboardEvent) => {
     const el = evt.currentTarget as HTMLInputElement | null;
     if (!el) return;
@@ -85,6 +83,8 @@ class NumberClass extends Emitter implements Number {
     const cursorStartPos = el.selectionStart || 0;
     const cursorEndPos = el.selectionEnd || 0;
     const multiSelect = cursorStartPos !== cursorEndPos;
+
+    // console.log(key);
 
     // Check if the prefix is present and the cursor is within it
     const prefix = this.settings.prefix || '';
@@ -109,6 +109,7 @@ class NumberClass extends Emitter implements Number {
       'Backspace',
       'Delete',
       'Tab',
+      '-',
     ];
 
     // Handle special keys
@@ -141,7 +142,7 @@ class NumberClass extends Emitter implements Number {
           if (!multiSelect) {
             this.selectionDirection = 'left';
           }
-          this.calcSelectionCount(el);
+          // this.calcSelectionCount(el);
         } else {
           end = start;
           this.selectionDirection = 'none';
@@ -161,7 +162,7 @@ class NumberClass extends Emitter implements Number {
             el.setSelectionRange(start, end, 'backward');
           }
           this.selectionDirection = 'right';
-          this.calcSelectionCount(el);
+          // this.calcSelectionCount(el);
         } else {
           this.defaultPrevented = false;
           this.selectionDirection = 'none';
@@ -180,7 +181,7 @@ class NumberClass extends Emitter implements Number {
             }
           } else {
             this.selectionDirection = 'left';
-            this.calcSelectionCount(el);
+            // this.calcSelectionCount(el);
           }
         } else {
           end = start;
@@ -199,7 +200,7 @@ class NumberClass extends Emitter implements Number {
             el.setSelectionRange(start, end, 'backward');
           }
           this.selectionDirection = 'right';
-          this.calcSelectionCount(el);
+          // this.calcSelectionCount(el);
         } else {
           this.defaultPrevented = false;
           this.selectionDirection = 'none';
@@ -208,7 +209,7 @@ class NumberClass extends Emitter implements Number {
 
       case 'Backspace':
         if (prefixLength && cursorStartPos < prefixLength) {
-          el.setSelectionRange(prefixLength, prefixLength);
+          el.setSelectionRange(prefixLength, end);
         } else if (
           prefixLength &&
           cursorStartPos === prefixLength &&
@@ -219,19 +220,32 @@ class NumberClass extends Emitter implements Number {
 
         break;
 
-      case 'Delete':
-        // if (cursorStartPos <= prefixLength) {
-        //   evt.preventDefault();
-        // }
-        break;
+      // case '-':
+      //   break;
+
+      // case 'Delete':
+      //   break;
 
       default:
-        if (0 !== cursorStartPos && cursorStartPos < prefixLength) {
+        if (
+          prefixLength &&
+          0 !== cursorStartPos &&
+          cursorStartPos < prefixLength
+        ) {
           evt.preventDefault();
         }
         break;
     }
   };
+
+  setMinus(minus: boolean = true) {
+    if (minus) {
+      this.element.classList.add('is-negative');
+    } else {
+      this.element.classList.remove('is-negative');
+    }
+    this.isMinus = minus;
+  }
 
   onbeforeinput = (evt: InputEvent) => {
     evt.preventDefault();
@@ -240,20 +254,30 @@ class NumberClass extends Emitter implements Number {
     if (!el) return;
 
     const inputData = evt.data;
-
     let val = el.value;
     let startPosition = el.selectionStart;
     let endPosition = el.selectionEnd;
     let multiSelect = startPosition !== endPosition;
+    const s = this.settings;
 
     if (null === endPosition || null === startPosition) {
       return;
     }
 
+    if ('-' === inputData) {
+      let tmp;
+      if (this.isMinus) {
+        tmp = val.replace('-', '');
+      } else {
+        tmp = val.slice(0, s.prefix.length) + '-' + val.slice(s.prefix.length);
+      }
+      this.setMinus(!this.isMinus);
+      this.dataChanged(evt, tmp);
+      return;
+    }
+
     // insertText
     // insertFromPaste
-    // deleteContentBackward
-
     if (multiSelect) {
       // isDeleting
       if (
@@ -280,8 +304,45 @@ class NumberClass extends Emitter implements Number {
       }
     }
 
+    this.setMinus(val.indexOf('-') > 0);
+
+    const parsed = parseLocaleNumber(val) || '';
+    const newString = parsed.toString().replace('-', '');
+    const newNumber = Number(parsed);
+
+    if (isStringOrNumber(s.min) && newNumber < +s.min) {
+      console.log('to small, min: ', s.min);
+      // this.dataChanged(evt, s.min);
+      return;
+    }
+
+    if (isStringOrNumber(s.max) && newNumber > +s.max) {
+      console.log('to big, max: ', s.max);
+      return;
+    }
+
+    if (isStringOrNumber(s.minlength) && newString.length < s.minlength) {
+      console.log('to short');
+      return;
+    }
+
+    if (isStringOrNumber(s.maxlength) && newString.length > s.maxlength) {
+      console.log('to long', newString, newString.length, s.maxlength);
+      return;
+    }
+
     this.dataChanged(evt, val);
   };
+
+  // calcSelectionCount(el: HTMLInputElement) {
+  //   if (this.to) clearTimeout(this.to);
+  //   this.to = setTimeout(() => {
+  //     const start = el.selectionStart || 0;
+  //     const end = el.selectionEnd || 0;
+  //     // this._selectedCharsCount = Math.abs(end - start);
+  //     clearTimeout(this.to);
+  //   }, 0);
+  // }
 
   dataChanged(evt: InputEvent, val: string) {
     const el = evt.target as HTMLInputElement | null;
@@ -290,13 +351,19 @@ class NumberClass extends Emitter implements Number {
     const prevLen = el.value.length;
     const strBefore = val.length;
 
+    console.log(strBefore, prevLen);
+
     // if (0 === prevLen && 0 === strBefore) return;
 
     const startPosition = el.selectionStart || 0;
     const endPosition = el.selectionEnd || 0;
     const multiSelect = startPosition !== endPosition;
 
-    const formattedVal = formatNumber(val, this.settings.prefix);
+    const formattedVal = formatNumber(
+      val,
+      this.settings.prefix,
+      this.settings.showAffixWhenEmpty
+    );
     const formattedLen = formattedVal.length;
 
     let cursorPos;
@@ -325,7 +392,6 @@ class NumberClass extends Emitter implements Number {
     const value = isNaN(parsed) ? '' : parsed.toString();
 
     this.element.dataset.value = value;
-
     this._value = value;
     this._formattedValue = formattedVal;
 
@@ -365,6 +431,10 @@ class NumberClass extends Emitter implements Number {
   init() {
     if (!this.element) {
       throw new Error('Failed to find form, result or num elements');
+    }
+
+    if (!this.settings.prefix) {
+      this.settings.prefix = '';
     }
 
     this.settings.originalType = this.element.type;

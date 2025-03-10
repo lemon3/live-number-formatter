@@ -78,6 +78,10 @@ button:focus-visible {
   margin-bottom: 0.5em;
 }
 
+.main-form input.is-negative {
+  color: rgb(191, 79, 79);
+}
+
 .main-form input:focus {
   outline: none;
 }

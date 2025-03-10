@@ -105,13 +105,18 @@ const parseLocaleNumber = (localeString: string): number => {
   return parseFloat(result);
 };
 
-function formatNumber(num: string, prefix: string = '') {
-  if (num.startsWith(prefix)) {
+const formatNumber = (
+  num: string | number,
+  prefix: string = '',
+  showAffixWhenEmpty: boolean = false
+): string => {
+  num = '' + num;
+  if (prefix.length > 0 && num.startsWith(prefix)) {
     num = num.slice(prefix.length);
   }
 
   // Check if input is empty
-  if (!num) return '';
+  if (!num) return showAffixWhenEmpty ? prefix : '';
 
   // Check if input has a comma at the end
   let hasTrailingComma = num.endsWith(',');
@@ -143,7 +148,53 @@ function formatNumber(num: string, prefix: string = '') {
     // If there is no fractional part, return the integer part
     return prefix + (hasTrailingComma ? integerPart + ',' : integerPart);
   }
-}
+};
+
+const toShort = (string: string, minLength: number): boolean => {
+  if (typeof string !== 'string') {
+    throw new Error('Input must be a string');
+  }
+  if (typeof minLength !== 'number') {
+    throw new Error('Minimum length must be a number');
+  }
+  return string.length < minLength;
+};
+
+const toLong = (string: string, maxlength: number): boolean => {
+  if (typeof string !== 'string') {
+    throw new Error('Input must be a string');
+  }
+  if (typeof maxlength !== 'number') {
+    throw new Error('Maximum length must be a number');
+  }
+  return string.length > maxlength;
+};
+
+const isInRange = (
+  value: number,
+  min: number | undefined = undefined,
+  max: number | undefined = undefined
+): boolean => {
+  console.log(min, max);
+  return (
+    (min === undefined || value >= min) && (max === undefined || value <= max)
+  );
+};
+
+const checkStringLength = (
+  string: string,
+  min: number | undefined = undefined,
+  max: number | undefined = undefined
+): boolean => {
+  return (
+    (min === undefined || string.length >= min) &&
+    (max === undefined || string.length <= max)
+  );
+};
+
+const isStringOrNumber = (value: any): boolean => {
+  return typeof value === 'string' || typeof value === 'number';
+};
 
 export {
   parseLocaleNumber,
@@ -151,4 +202,9 @@ export {
   deleteCharAt,
   replaceCharAt,
   formatNumber,
+  isInRange,
+  checkStringLength,
+  isStringOrNumber,
+  toShort,
+  toLong,
 };
