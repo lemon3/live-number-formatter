@@ -412,7 +412,7 @@ describe('toLong', () => {
   it('throws error when maxLength is not a number', () => {
     // @ts-ignore
     expect(() => toLong('hello', 'a')).toThrowError(
-      'returns true when string is empty length must be a number'
+      'Maximum length must be a number'
     );
   });
 });
