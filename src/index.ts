@@ -231,8 +231,14 @@ class NumberClass extends Emitter implements Number {
     }
 
     let inputData = evt.data;
-    if ('.' === inputData) inputData = ',';
 
+    if ('insertFromPaste' === evt.inputType) {
+      let tmp = parseFloat(inputData || '');
+      if (!isNaN(tmp)) inputData = '' + tmp;
+      else if (null !== inputData && isNaN(+tmp)) return;
+    }
+
+    if ('.' === inputData) inputData = ',';
     const s = this.settings;
     let multiSelect = startPosition !== endPosition;
 
@@ -405,6 +411,18 @@ class NumberClass extends Emitter implements Number {
     this.element.value = ''; // TODO: use the last value given!
   }
 
+  // onpaste = (evt) => {
+  //   console.log(evt);
+  //   evt.preventDefault();
+
+  //   const pastedData = evt.clipboardData
+  //     ? evt.clipboardData.getData('text')
+  //     : window.clipboardData.getData('text');
+
+  //   console.log(pastedData);
+  //   this.dataChanged(evt, pastedData);
+  // };
+
   init() {
     if (!this.element) {
       throw new Error('Failed to find form, result or num elements');
@@ -448,6 +466,7 @@ class NumberClass extends Emitter implements Number {
     this.element.addEventListener('keydown', this.onkeydown);
     this.element.addEventListener('blur', this.onblur);
     this.element.addEventListener('beforeinput', this.onbeforeinput);
+    // this.element.addEventListener('paste', this.onpaste);
 
     if (this.settings.startValue) {
       this.setValue(this.settings.startValue);
