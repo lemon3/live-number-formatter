@@ -6,10 +6,6 @@ import {
   replaceCharAt,
   formatNumber,
   parseLocaleNumber,
-  // toShort,
-  // toLong,
-  // isInRange,
-  // checkStringLength,
   isStringOrNumber,
 } from './utils';
 
@@ -21,8 +17,8 @@ const defaults = {
   suffix: '', // TODO: implement
   min: null,
   max: null,
-  minlength: 0,
-  maxlength: 6,
+  minlength: null,
+  maxlength: null,
   showAffixWhenEmpty: true,
   allowComma: false, // TODO: implement
   ltr: true, // TODO: implement -> left to right, default: true
@@ -253,18 +249,21 @@ class NumberClass extends Emitter implements Number {
     const el = evt.target as HTMLInputElement | null;
     if (!el) return;
 
-    const inputData = evt.data;
     let val = el.value;
     let startPosition = el.selectionStart;
     let endPosition = el.selectionEnd;
-    let multiSelect = startPosition !== endPosition;
-    const s = this.settings;
 
     if (null === endPosition || null === startPosition) {
       return;
     }
 
+    const inputData = evt.data;
+    const s = this.settings;
+    let multiSelect = startPosition !== endPosition;
+
     if ('-' === inputData) {
+      // console.log(inputData, val, this._value);
+      if (!this._value) return;
       let tmp;
       if (this.isMinus) {
         tmp = val.replace('-', '');
@@ -304,9 +303,7 @@ class NumberClass extends Emitter implements Number {
       }
     }
 
-    this.setMinus(val.indexOf('-') > 0);
-
-    const parsed = parseLocaleNumber(val) || '';
+    const parsed = this._value || '';
     const newString = parsed.toString().replace('-', '');
     const newNumber = Number(parsed);
 
@@ -331,6 +328,7 @@ class NumberClass extends Emitter implements Number {
       return;
     }
 
+    console.log('data to change', val);
     this.dataChanged(evt, val);
   };
 
@@ -350,17 +348,16 @@ class NumberClass extends Emitter implements Number {
 
     const prevLen = el.value.length;
     const strBefore = val.length;
-
-    console.log(strBefore, prevLen);
-
-    // if (0 === prevLen && 0 === strBefore) return;
-
     const startPosition = el.selectionStart || 0;
     const endPosition = el.selectionEnd || 0;
     const multiSelect = startPosition !== endPosition;
 
+    console.log('>>>', val);
+    const parsed = parseLocaleNumber(val);
+
     const formattedVal = formatNumber(
       val,
+      parsed,
       this.settings.prefix,
       this.settings.showAffixWhenEmpty
     );
@@ -383,15 +380,14 @@ class NumberClass extends Emitter implements Number {
       }
     }
 
+    this.setMinus(formattedVal.indexOf('-') > 0);
     el.value = formattedVal;
+
     if (cursorPos === null) cursorPos = formattedLen;
     el.setSelectionRange(cursorPos, cursorPos);
 
-    // get number string
-    const parsed = parseLocaleNumber(formattedVal);
     const value = isNaN(parsed) ? '' : parsed.toString();
 
-    this.element.dataset.value = value;
     this._value = value;
     this._formattedValue = formattedVal;
 
@@ -400,6 +396,7 @@ class NumberClass extends Emitter implements Number {
       formattedVal,
     };
 
+    this.element.dataset.value = value;
     this.emit(INPUT, result);
 
     return result;

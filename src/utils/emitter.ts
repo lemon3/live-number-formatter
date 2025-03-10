@@ -75,11 +75,15 @@ export class Emitter {
    * @returns {Emitter} this instance for chaining
    */
   removeEventListener(
-    eventName: string,
+    eventName?: string,
     listener?: (event: CustomEvent) => void
   ): Emitter {
     // clear all
-    if (!this._eventCallbacks || (!eventName && !listener)) {
+    if (
+      !this._eventCallbacks ||
+      'undefined' === typeof eventName ||
+      !listener
+    ) {
       this._eventCallbacks = {};
       return this;
     }

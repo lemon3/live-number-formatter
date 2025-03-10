@@ -106,47 +106,41 @@ const parseLocaleNumber = (localeString: string): number => {
 };
 
 const formatNumber = (
-  num: string | number,
+  value: string | number,
+  number: number,
   prefix: string = '',
-  showAffixWhenEmpty: boolean = false
+  showAffixWhenEmpty: boolean = false,
+  comma: string = ',',
+  separator: string = '.'
 ): string => {
-  num = '' + num;
-  if (prefix.length > 0 && num.startsWith(prefix)) {
-    num = num.slice(prefix.length);
+  value = ('' + value).trim();
+
+  if (isNaN(number)) {
+    return prefix.length && showAffixWhenEmpty ? prefix : '';
+  }
+
+  if (prefix.length > 0) {
+    value = value.startsWith(prefix) ? value.slice(prefix.length) : value;
   }
 
   // Check if input is empty
-  if (!num) return showAffixWhenEmpty ? prefix : '';
+  if (!value) return showAffixWhenEmpty ? prefix : '';
 
   // Check if input has a comma at the end
-  let hasTrailingComma = num.endsWith(',');
+  const trailingComma = value.endsWith(comma) ? comma : '';
 
-  // Remove trailing comma if present
-  // num = num.replace(/,$/, '');
-
-  num = num.replaceAll('.', '');
-
-  // Replace comma with dot if present
-  num = num.replace(',', '.'); // us correct
-
-  // Convert to number
-  let number = Number(num);
-
-  // Check if number is NaN (not a number)
-  if (isNaN(number)) return '';
+  value = value.replaceAll(separator, '');
+  value = value.replace(comma, separator);
 
   // Split the number into integer and fractional parts
-  let parts = num.split('.');
+  let parts = value.split(separator);
 
-  // Format the integer part
   let integerPart = Number(parts[0]).toLocaleString('de-DE');
 
-  // If there is a fractional part, append it to the integer part
   if (parts.length > 1) {
-    return prefix + (integerPart + ',' + parts[1]);
+    return prefix + integerPart + comma + parts[1];
   } else {
-    // If there is no fractional part, return the integer part
-    return prefix + (hasTrailingComma ? integerPart + ',' : integerPart);
+    return prefix + integerPart + trailingComma;
   }
 };
 
@@ -175,7 +169,6 @@ const isInRange = (
   min: number | undefined = undefined,
   max: number | undefined = undefined
 ): boolean => {
-  console.log(min, max);
   return (
     (min === undefined || value >= min) && (max === undefined || value <= max)
   );
