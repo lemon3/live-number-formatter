@@ -107,5 +107,12 @@ describe('Emitter', () => {
       // @ts-ignore
       expect(emitter._eventCallbacks['test']).toBeUndefined();
     });
+
+    it('should return emitter if eventName is null', () => {
+      const emitter = new Emitter();
+      // @ts-ignore
+      const ret = emitter.removeEventListener(null);
+      expect(ret).toBe(emitter);
+    });
   });
 });

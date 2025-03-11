@@ -81,18 +81,16 @@ export class Emitter {
     // clear all
     if (
       !this._eventCallbacks ||
-      'undefined' === typeof eventName ||
-      !listener
+      ('undefined' === typeof eventName && !listener)
     ) {
       this._eventCallbacks = {};
       return this;
     }
 
     // early exit, eventName not found
+    if (!eventName) return this;
+
     const eventCallbacks = this._eventCallbacks[eventName];
-    if (!eventCallbacks) {
-      return this;
-    }
 
     // remove handlers for a specific event
     if (!listener) {

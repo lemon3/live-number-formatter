@@ -1,5 +1,5 @@
 import { NumberClass } from './index.ts';
-import './preview.css';
+import './_preview.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div id="key-pressed"></div>
@@ -21,7 +21,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 const inp: HTMLInputElement | null = document.querySelector('#num');
 
 const options = {
-  startValue: 2332.27,
+  startValue: null,
   prefix: '€ ',
   showAffixWhenEmpty: true,
   allowComma: true,
@@ -39,16 +39,12 @@ function generateRandomNumber(min: number, max: number) {
 const buttonClicked = () => {
   const rand = generateRandomNumber(100, 99999);
   nc.setValue(rand);
-  if (result) {
-    result.innerHTML = 'value: ' + nc.getFormattedValue();
-  }
+  if (result) result.innerHTML = `value: ${nc.getValue()}`;
 };
 // buttonClicked();
 
 nc.addEventListener('input', (evt) => {
-  if (result) {
-    result.innerHTML = evt.detail.value || '';
-  }
+  if (result) result.innerHTML = `value: ${evt.detail.value || ''}`;
 });
 
 if (inp) {

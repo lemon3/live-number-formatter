@@ -24,11 +24,6 @@ export default defineConfig({
     copyPublicDir: false,
   },
 
-  test: {
-    globals: true,
-    environment: 'jsdom',
-  },
-
   resolve: {
     alias: [
       {

@@ -114,7 +114,6 @@ const formatNumber = (
 ): string => {
   value = ('' + value).trim();
   let number = parseLocaleNumber(value);
-
   if (isNaN(number)) {
     return prefix.length && showAffixWhenEmpty ? prefix : '';
   }
@@ -124,13 +123,14 @@ const formatNumber = (
   }
 
   // Check if input is empty
-  if (!value) return showAffixWhenEmpty ? prefix : '';
+  // if (!value) return showAffixWhenEmpty ? 'prefix' : '';
 
   // Check if input has a comma at the end
   const trailingComma = value.endsWith(comma) ? comma : '';
 
   value = value.replaceAll(separator, '');
   value = value.replace(comma, separator);
+  // value = '' + number;
 
   // Split the number into integer and fractional parts
   let parts = value.split(separator);

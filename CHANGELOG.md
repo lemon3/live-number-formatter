@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.4
+### changed
+- performance optimization
+### added
+- more test added
+
 ## v0.0.3
 ### added
 - startValue option

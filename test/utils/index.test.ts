@@ -9,6 +9,7 @@ import {
   isStringOrNumber,
   toShort,
   toLong,
+  formatNumber,
 } from '../../src/utils';
 
 describe('insertCharsAt', () => {
@@ -66,6 +67,16 @@ describe('insertCharsAt', () => {
     const position = 2;
     const result = insertCharsAt(string, chars, position);
     expect(result).toBe('hello');
+  });
+
+  it('should through an error if string is not a string', () => {
+    const string = null;
+    const chars = '';
+    const position = 0;
+    // @ts-ignore
+    expect(() => insertCharsAt(string, chars, position)).toThrowError(
+      'Input must be a string'
+    );
   });
 });
 
@@ -414,5 +425,49 @@ describe('toLong', () => {
     expect(() => toLong('hello', 'a')).toThrowError(
       'Maximum length must be a number'
     );
+  });
+});
+
+// formatNumber
+describe('formatNumber', () => {
+  it('should format a number with a prefix', () => {
+    expect(formatNumber('12345', '$')).toBe('$12.345');
+  });
+
+  // it('should format a number with a decimal point', () => {
+  //   expect(parseLocaleNumber('12345.67')).toBe(12345.67);
+  //   expect(formatNumber('12345.67', '', false)).toBe('12.345,67');
+  // });
+
+  // it('should format a number with a comma as thousand separator', () => {
+  //   expect(formatNumber('12,345.67', '', false, '.', ',')).toBe('12.345,67');
+  // });
+
+  it('should handle empty input', () => {
+    expect(formatNumber('', '', true)).toBe('');
+    expect(formatNumber('', '', false)).toBe('');
+    expect(formatNumber('', '€', true)).toBe('€');
+    expect(formatNumber('', '€', false)).toBe('');
+  });
+
+  it('should handle NaN input', () => {
+    expect(formatNumber('abc', '', false)).toBe('');
+    expect(formatNumber('abc', '€', true)).toBe('€');
+  });
+
+  it('should handle input with trailing comma', () => {
+    expect(formatNumber('12.345,', '', false, ',', '.')).toBe('12.345,');
+  });
+
+  it('should handle input with prefix', () => {
+    expect(formatNumber('€12,34', '€', false)).toBe('€12,34');
+  });
+
+  it('should return the prefix if empty', () => {
+    expect(formatNumber('', '€_', true)).toBe('€_');
+  });
+
+  it("should return '' if empty", () => {
+    expect(formatNumber('', '€_', false)).toBe('');
   });
 });
