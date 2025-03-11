@@ -46,7 +46,6 @@ jobs:
         run: pnpm install
 
       - name: Build docs / demo
-        working-directory: packages/core
         run: pnpm run demo
 
       - name: Setup Pages
