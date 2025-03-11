@@ -19,7 +19,16 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 const inp: HTMLInputElement | null = document.querySelector('#num');
-const nc = new NumberClass(inp);
+
+const options = {
+  startValue: 2332.27,
+  prefix: '€ ',
+  showAffixWhenEmpty: true,
+  allowComma: true,
+};
+
+const nc = new NumberClass('#num', options);
+
 const result = document.querySelector('#result');
 const keyPressed = document.querySelector('#key-pressed');
 
@@ -34,7 +43,6 @@ const buttonClicked = () => {
     result.innerHTML = 'value: ' + nc.getFormattedValue();
   }
 };
-
 // buttonClicked();
 
 nc.addEventListener('input', (evt) => {

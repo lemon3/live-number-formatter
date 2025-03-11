@@ -13,14 +13,14 @@ import {
 const INPUT = 'input';
 
 const defaults = {
-  startValue: 1012.78,
-  prefix: '€ ',
-  suffix: '', // TODO: implement
+  startValue: null,
+  prefix: null,
+  suffix: null, // TODO: implement
   min: null,
   max: null,
   minlength: null,
   maxlength: null,
-  showAffixWhenEmpty: true,
+  showAffixWhenEmpty: false,
   allowComma: true,
   ltr: true, // TODO: implement -> left to right, default: true
 };
@@ -39,10 +39,21 @@ class NumberClass extends Emitter implements Number {
   isMinus: boolean = false;
   arrows: string[] = [];
   allowedKeys: string[] = [];
+  error: boolean = false;
 
-  constructor(el: any, options?: any) {
+  constructor(element: any, options?: any) {
     super();
-    this.element = el;
+
+    element =
+      'string' === typeof element ? document.querySelector(element) : element;
+
+    console.log(element);
+
+    if (null === element || 0 === element.length) {
+      throw { error: true };
+    }
+
+    this.element = element;
     this.options = options;
     this.settings = { ...defaults, ...options };
 
@@ -107,6 +118,7 @@ class NumberClass extends Emitter implements Number {
     let end = cursorEnd;
     let start = cursorStart;
 
+    console.log(evt.key);
     // Handle special keys
     switch (evt.key) {
       case 'ArrowLeft':
@@ -219,6 +231,7 @@ class NumberClass extends Emitter implements Number {
   }
 
   onbeforeinput = (evt: InputEvent) => {
+    console.log('onbeforeinput');
     evt.preventDefault();
     const el = this.element;
 
@@ -250,8 +263,8 @@ class NumberClass extends Emitter implements Number {
       } else {
         tmp = val.slice(0, s.prefix.length) + '-' + val.slice(s.prefix.length);
       }
-      this.setMinus(!this.isMinus);
-      this.dataChanged(evt, tmp);
+
+      this.dataChanged(evt, tmp.slice(this.settings.prefix.length));
       return;
     }
 
@@ -289,7 +302,6 @@ class NumberClass extends Emitter implements Number {
 
     if (isStringOrNumber(s.min) && newNumber < +s.min) {
       console.log('to small, min: ', s.min);
-      // this.dataChanged(evt, s.min);
       return;
     }
 
@@ -306,6 +318,18 @@ class NumberClass extends Emitter implements Number {
     if (isStringOrNumber(s.maxlength) && newString.length > s.maxlength) {
       console.log('to long', newString, newString.length, s.maxlength);
       return;
+    }
+
+    if (
+      this.settings.prefix &&
+      this.settings.prefix.length > 0 &&
+      val.startsWith(this.settings.prefix)
+    ) {
+      val = val.slice(this.settings.prefix.length);
+    }
+
+    if (val.startsWith(',')) {
+      val = '0' + val;
     }
 
     this.dataChanged(evt, val);
@@ -356,7 +380,8 @@ class NumberClass extends Emitter implements Number {
       }
     }
 
-    this.setMinus(formattedVal.indexOf('-') > 0);
+    this.setMinus(formattedVal.indexOf('-') >= 0);
+
     el.value = formattedVal;
     const parsed = parseLocaleNumber(formattedVal);
 
