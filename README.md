@@ -8,10 +8,14 @@
 is an input field designed for numbers, which live formats the entered number.
 
 ## demo
+### [go to the demo >>](https://lemon3.github.io/live-number-formatter/)
+
 ![demo](https://raw.githubusercontent.com/lemon3/live-number-formatter/refs/heads/main/_assets/demo.gif)
 
 ## usage
-tdb.
+```js
+// todo
+```
 
 ## options
 ```js
