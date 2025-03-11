@@ -47,8 +47,6 @@ class NumberClass extends Emitter implements Number {
     element =
       'string' === typeof element ? document.querySelector(element) : element;
 
-    console.log(element);
-
     if (null === element || 0 === element.length) {
       throw { error: true };
     }
@@ -330,6 +328,9 @@ class NumberClass extends Emitter implements Number {
 
     if (val.startsWith(',')) {
       val = '0' + val;
+      // val = val.slice(1);
+    } else if (val.startsWith('-,')) {
+      val = '-0' + val.slice(1);
     }
 
     this.dataChanged(evt, val);
@@ -346,7 +347,7 @@ class NumberClass extends Emitter implements Number {
   // }
 
   dataChanged(evt: InputEvent, val: string) {
-    console.log('dataChanged to:', val);
+    // console.log('dataChanged to:', val);
     const el = evt.target as HTMLInputElement | null;
     if (!el) return;
 
