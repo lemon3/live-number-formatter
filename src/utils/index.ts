@@ -71,17 +71,14 @@ const replaceCharAt = (
 };
 
 /**
- * From a LocaleString to a number
+ * From a LocaleString to a number if there is no locale set
  *
  * @param localeString The string to format
  * @returns number
  */
-const parseLocaleNumber = (localeString: string): number => {
+const parseNumber = (localeString: string): number => {
   if ('' === localeString) return NaN;
-
-  if (!isNaN(Number(localeString))) {
-    return Number(localeString);
-  }
+  if (!isNaN(Number(localeString))) return Number(localeString);
 
   let result = localeString.replaceAll(' ', '').replace(/[^\d-.,\s]/g, '');
   const indexComma = result.lastIndexOf(',');
@@ -101,47 +98,69 @@ const parseLocaleNumber = (localeString: string): number => {
       result = result.replaceAll(',', '.');
     }
   }
+  console.log(result);
 
   return parseFloat(result);
 };
 
+const getLocaleStorage = new Map();
+const getLocaleSeparators = (locale: string) => {
+  if (getLocaleStorage.get(locale)) return getLocaleStorage.get(locale);
+  const numberFormat = new Intl.NumberFormat(locale, { useGrouping: true });
+  const parts = numberFormat.formatToParts(1234.56);
+  const decimal = parts?.find((part) => part.type === 'decimal')?.value || '.';
+  const group = parts?.find((part) => part.type === 'group')?.value || ',';
+  const result = { decimal, group };
+
+  getLocaleStorage.set(locale, result);
+  return result;
+};
+
+function parseLocaleNumber(localeString: string = '', locale?: string): number {
+  if (!locale) {
+    return parseNumber(localeString);
+  }
+  localeString = localeString.replaceAll(' ', '').replace(/[^\d-.,\s]/g, '');
+  // if ('number' === typeof localeString) return localeString;
+  const { decimal, group } = getLocaleSeparators(locale);
+
+  return parseFloat(
+    localeString
+      // .replace(new RegExp(`[${group}]`, 'g'), '')
+      .replaceAll(group, '')
+      .replace(decimal, '.')
+  );
+}
+
 const formatNumber = (
   value: string | number,
-  prefix: string = '',
-  showAffixWhenEmpty: boolean = false,
-  comma: string = ',',
-  separator: string = '.'
-): string => {
-  value = ('' + value).trim();
-  let number = parseLocaleNumber(value);
-  if (isNaN(number)) {
-    return prefix.length && showAffixWhenEmpty ? prefix : '';
+  locale?: string,
+  allowComma: boolean = true,
+  maxDecimalPlaces: number = 2
+): { value: number; formattedVal: string } => {
+  value = '' + value;
+  let number = parseLocaleNumber(value, locale);
+  if ('' === value || isNaN(number)) {
+    return {
+      value: number,
+      formattedVal: '',
+    };
   }
 
-  if (prefix.length > 0) {
-    value = value.startsWith(prefix) ? value.slice(prefix.length) : value;
-  }
+  const { decimal } = getLocaleSeparators(locale || '');
+  const trailingComma = value.toString().endsWith(decimal) ? decimal : '';
+  let [, fractionVal] = value.split(decimal);
 
-  // Check if input is empty
-  // if (!value) return showAffixWhenEmpty ? 'prefix' : '';
+  let [intNum] = ('' + number).split('.');
+  const intValLocal = Number(intNum).toLocaleString(locale);
+  const decimalPlaces = fractionVal?.slice(0, maxDecimalPlaces) || '';
 
-  // Check if input has a comma at the end
-  const trailingComma = value.endsWith(comma) ? comma : '';
-
-  value = value.replaceAll(separator, '');
-  value = value.replace(comma, separator);
-  // value = '' + number;
-
-  // Split the number into integer and fractional parts
-  let parts = value.split(separator);
-
-  let integerPart = Number(parts[0]).toLocaleString('de-DE');
-
-  if (parts.length > 1) {
-    return prefix + integerPart + comma + parts[1];
-  } else {
-    return prefix + integerPart + trailingComma;
-  }
+  return {
+    value: parseFloat(`${intNum}.${decimalPlaces}`),
+    formattedVal:
+      intValLocal +
+      (fractionVal && allowComma ? decimal + decimalPlaces : trailingComma),
+  };
 };
 
 const toShort = (string: string, minLength: number): boolean => {
@@ -200,4 +219,6 @@ export {
   isStringOrNumber,
   toShort,
   toLong,
+  parseNumber,
+  getLocaleSeparators,
 };

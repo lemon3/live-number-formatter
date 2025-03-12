@@ -2,7 +2,6 @@ import { NumberClass } from './index.ts';
 import './_preview.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div id="key-pressed"></div>
   <div class="main-form">
     <div id="result"></div>
     <input
@@ -18,11 +17,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
 `;
 
-const inp: HTMLInputElement | null = document.querySelector('#num');
-
 const options = {
   startValue: null,
-  prefix: '€ ',
+  prefix: '$ ',
   showAffixWhenEmpty: true,
   allowComma: true,
 };
@@ -30,7 +27,7 @@ const options = {
 const nc = new NumberClass('#num', options);
 
 const result = document.querySelector('#result');
-const keyPressed = document.querySelector('#key-pressed');
+// const keyPressed = document.querySelector('#key-pressed');
 
 function generateRandomNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -38,7 +35,8 @@ function generateRandomNumber(min: number, max: number) {
 
 const buttonClicked = () => {
   const rand = generateRandomNumber(100, 99999);
-  nc.setValue(rand);
+  const minus = Math.random() > 0.6 ? '-' : '';
+  nc.setValue(minus + rand);
   if (result) result.innerHTML = `value: ${nc.getValue()}`;
 };
 // buttonClicked();
@@ -47,11 +45,12 @@ nc.addEventListener('input', (evt) => {
   if (result) result.innerHTML = `value: ${evt.detail.value || ''}`;
 });
 
-if (inp) {
-  inp.addEventListener('keydown', (evt: KeyboardEvent) => {
-    if (keyPressed) keyPressed.innerHTML = evt.key;
-  });
-}
+// const inp: HTMLInputElement | null = document.querySelector('#num');
+// if (inp) {
+//   inp.addEventListener('keydown', (evt: KeyboardEvent) => {
+//     if (keyPressed) keyPressed.innerHTML = evt.key;
+//   });
+// }
 
 const randButton = document.querySelector('#rand-button');
 if (randButton) {

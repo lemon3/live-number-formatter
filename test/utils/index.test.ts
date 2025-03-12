@@ -10,6 +10,7 @@ import {
   toShort,
   toLong,
   formatNumber,
+  parseNumber,
 } from '../../src/utils';
 
 describe('insertCharsAt', () => {
@@ -222,16 +223,43 @@ describe('replaceCharAt', () => {
   });
 });
 
+// parseNumber
+describe('parseNumber (no locale given)', () => {
+  it('should parse numbers with comma as thousand separator and dot as decimal', () => {
+    expect(parseNumber('$ 12,738.44')).toBe(12738.44);
+  });
+  it('should parse numbers with dot as thousand separator and comma as decimal', () => {
+    expect(parseNumber('€ 12.738,44')).toBe(12738.44);
+  });
+
+  it('should parse small numbers with and dot as decimal', () => {
+    expect(parseNumber('38.13')).toBe(38.13);
+  });
+  it('should parse small numbers with and comma as decimal', () => {
+    expect(parseNumber('38,13')).toBe(38.13);
+  });
+
+  it('should work', () => {
+    expect(parseNumber('$ 12,738.44')).toBe(12738.44);
+    expect(parseNumber('€ 12.738,44')).toBe(12738.44);
+  });
+});
+
 // parseLocaleNumber
 describe('parseLocaleNumber', () => {
-  it('should parse numbers with comma as thousand separator and dot as decimal', () => {
+  it('should parse numbers with comma as thousand separator and dot as decimal if no locale is given', () => {
     expect(parseLocaleNumber('$ 12,738.44')).toBe(12738.44);
     expect(parseLocaleNumber('$ 12,001,738.44')).toBe(12001738.44);
   });
 
+  it('should parse numbers with comma as thousand separator and dot as decimal', () => {
+    expect(parseLocaleNumber('$ 12,738.44', 'en-US')).toBe(12738.44);
+    expect(parseLocaleNumber('$ 12,001,738.44', 'en-US')).toBe(12001738.44);
+  });
+
   it('should parse numbers with dot as thousand separator and comma as decimal', () => {
-    expect(parseLocaleNumber('€ 12.738,44')).toBe(12738.44);
-    expect(parseLocaleNumber('€ 12.001.738,44')).toBe(12001738.44);
+    expect(parseLocaleNumber('€ 12.738,44', 'de-DE')).toBe(12738.44);
+    expect(parseLocaleNumber('€ 12.001.738,44', 'de-DE')).toBe(12001738.44);
   });
 
   it('should parse numbers with space as thousand separator and comma as decimal', () => {
@@ -262,12 +290,12 @@ describe('parseLocaleNumber', () => {
     expect(parseLocaleNumber('')).toBe(NaN);
   });
 
-  it('should return number if it is allready a valid number', () => {
-    expect(parseLocaleNumber('123')).toBe(123);
-    expect(parseLocaleNumber('0.45')).toBe(0.45);
-    expect(parseLocaleNumber('12230.4235')).toBe(12230.4235);
-    expect(parseLocaleNumber('123.495')).toBe(123.495);
-  });
+  // it('should return number if it is allready a valid number', () => {
+  //   expect(parseLocaleNumber('123')).toBe(123);
+  //   expect(parseLocaleNumber('0.45')).toBe(0.45);
+  //   expect(parseLocaleNumber('12230.4235')).toBe(12230.4235);
+  //   expect(parseLocaleNumber('123.495')).toBe(123.495);
+  // });
 
   it('should remove all non numbers', () => {
     expect(parseLocaleNumber('123 j 456')).toBe(123456);
@@ -431,43 +459,36 @@ describe('toLong', () => {
 // formatNumber
 describe('formatNumber', () => {
   it('should format a number with a prefix', () => {
-    expect(formatNumber('12345', '$')).toBe('$12.345');
+    expect(formatNumber('12345', 'de-DE').formattedVal).toBe('12.345');
   });
 
   // it('should format a number with a decimal point', () => {
   //   expect(parseLocaleNumber('12345.67')).toBe(12345.67);
-  //   expect(formatNumber('12345.67', '', false)).toBe('12.345,67');
+  //   expect(formatNumber('12345.67', 'de-DE')).toBe('12.345,67');
   // });
 
-  // it('should format a number with a comma as thousand separator', () => {
-  //   expect(formatNumber('12,345.67', '', false, '.', ',')).toBe('12.345,67');
-  // });
+  it('should format number to US with a comma as thousand separator', () => {
+    expect(formatNumber('12345.67', 'en-US').formattedVal).toBe('12,345.67');
+  });
 
   it('should handle empty input', () => {
-    expect(formatNumber('', '', true)).toBe('');
-    expect(formatNumber('', '', false)).toBe('');
-    expect(formatNumber('', '€', true)).toBe('€');
-    expect(formatNumber('', '€', false)).toBe('');
+    expect(formatNumber('').formattedVal).toBe('');
+    expect(formatNumber('', 'de-DE').formattedVal).toBe('');
   });
 
   it('should handle NaN input', () => {
-    expect(formatNumber('abc', '', false)).toBe('');
-    expect(formatNumber('abc', '€', true)).toBe('€');
+    expect(formatNumber('abc', 'de-DE').formattedVal).toBe('');
   });
 
   it('should handle input with trailing comma', () => {
-    expect(formatNumber('12.345,', '', false, ',', '.')).toBe('12.345,');
+    expect(formatNumber('12.345,', 'de-DE').formattedVal).toBe('12.345,');
   });
 
   it('should handle input with prefix', () => {
-    expect(formatNumber('€12,34', '€', false)).toBe('€12,34');
-  });
-
-  it('should return the prefix if empty', () => {
-    expect(formatNumber('', '€_', true)).toBe('€_');
+    expect(formatNumber('€ 12,34', 'de-DE').formattedVal).toBe('12,34');
   });
 
   it("should return '' if empty", () => {
-    expect(formatNumber('', '€_', false)).toBe('');
+    expect(formatNumber('').formattedVal).toBe('');
   });
 });

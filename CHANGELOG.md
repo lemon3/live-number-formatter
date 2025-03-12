@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.5
+### changed
+- test update
+### added
+- support for locale 'en-US', 'de-DE', ....
+
 ## v0.0.4
 ### changed
 - performance optimization
