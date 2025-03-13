@@ -16,28 +16,30 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <button id="rand-button">random number</button>
   </div>
   <div>
-    <button class="currency active">USD</button>
+    <button class="currency">USD</button>
     <button class="currency">EUR</button>
     <button class="currency">GBP</button>
   </div>
 `;
 
+const startValue = generateRandomNumber(100, 2000, 2);
+
 const settings = [
   {
     locale: 'en-US',
-    startValue: generateRandomNumber(100, 2000, 2),
+    startValue,
     prefix: '$ ',
     showAffixWhenEmpty: true,
   },
   {
     locale: 'de-DE',
-    // startValue: generateRandomNumber(100, 2000, 2),
+    startValue,
     prefix: '€ ',
     showAffixWhenEmpty: true,
   },
   {
     locale: 'uk-UK',
-    // startValue: generateRandomNumber(100, 2000, 2),
+    startValue,
     prefix: '£ ',
     showAffixWhenEmpty: true,
   },
@@ -70,6 +72,7 @@ const buttonClicked = () => {
   nc.setValue(minus + rand);
   if (result) result.innerHTML = `value: ${nc.getValue()}`;
 };
+if (result) result.innerHTML = '' + startValue;
 // buttonClicked();
 
 nc.addEventListener('input', (evt) => {
@@ -99,6 +102,9 @@ const currencyButtonsClicked = (index: number) => {
 
 if (currencyButtons) {
   currencyButtons.forEach((button, index) => {
+    if (currentIndex === index) {
+      button.classList.add('active');
+    }
     button.addEventListener('click', (evt) => {
       evt.preventDefault();
       currencyButtonsClicked(index);

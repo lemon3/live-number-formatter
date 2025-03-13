@@ -61,6 +61,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s;
   margin-block: 1em;
@@ -68,7 +69,6 @@ button {
   -webkit-touch-callout: none;
 }
 button.active {
-  color: #ffffff;
   background-color: rgb(215, 79, 0);
 }
 
