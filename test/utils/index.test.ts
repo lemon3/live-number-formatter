@@ -462,9 +462,14 @@ describe('formatNumber', () => {
     expect(formatNumber('12345', 'de-DE').formattedVal).toBe('12.345');
   });
 
-  // it('should format a number with a decimal point', () => {
-  //   expect(parseLocaleNumber('12345.67')).toBe(12345.67);
-  //   expect(formatNumber('12345.67', 'de-DE')).toBe('12.345,67');
+  it('should format valid inputs to EUR notation', () => {
+    expect(formatNumber('12345', 'de-DE').formattedVal).toBe('12.345');
+    expect(formatNumber('12345,67', 'de-DE').formattedVal).toBe('12.345,67');
+    expect(formatNumber('12.345,67', 'de-DE').formattedVal).toBe('12.345,67');
+  });
+
+  // it('should work too', () => {
+  //   expect(formatNumber('12345.67', 'de-DE').formattedVal).toBe('12.345,67');
   // });
 
   it('should format number to US with a comma as thousand separator', () => {

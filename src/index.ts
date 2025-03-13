@@ -1,4 +1,4 @@
-import type { Number } from './index.types';
+import type { Number, Options, LocalNumber } from './index.types';
 import { Emitter } from './utils/emitter';
 import {
   insertCharsAt,
@@ -12,59 +12,91 @@ import {
 // event names for emitting
 const INPUT = 'input';
 
-const defaults = {
-  startValue: null,
-  prefix: null,
-  suffix: null, // TODO: implement
-  locale: 'en-US',
-  min: null,
-  max: null,
-  minlength: null,
-  maxlength: null,
-  showAffixWhenEmpty: false,
-  allowComma: true,
-  maxDecimalPlaces: 2,
-  ltr: true, // TODO: implement -> left to right, default: true
-};
-
 class NumberClass extends Emitter implements Number {
   private _value: string = '';
   private _formattedValue: string = '';
 
-  element: HTMLInputElement;
-  options: any;
-  settings: any;
-  selectionDirection: string;
-  defaultPrevented: boolean;
+  static readonly defaults: Options = {
+    startValue: null,
+    prefix: null,
+    suffix: null, // TODO: implement
+    locale: 'en-US',
+    min: null,
+    max: null,
+    minlength: null,
+    maxlength: null,
+    showAffixWhenEmpty: false,
+    allowComma: true,
+    maxDecimalPlaces: 2,
+    ltr: true, // TODO: implement -> left to right, default: true
+  };
 
-  isMinus: boolean = false;
+  element;
+  options;
+  settings;
+  selectionDirection;
+  defaultPrevented;
+
+  isMinus = false;
   arrows: string[] = [];
   allowedKeys: string[] = [];
-  error: boolean = false;
-  localNumber: { decimal: string; group: string } = {
+  error = false;
+  localNumber = {
     decimal: '.',
     group: ',',
   };
+  originalType = '';
 
-  constructor(element: any, options?: any) {
+  constructor(element: string | null, options?: Options) {
     super();
 
-    element =
-      'string' === typeof element ? document.querySelector(element) : element;
+    const _element =
+      'string' === typeof element
+        ? (document.querySelector(element) as HTMLInputElement)
+        : element;
 
-    if (null === element || 0 === element.length) {
+    if (null === _element || !_element) {
       throw { error: true };
     }
 
-    this.element = element;
-    this.options = options;
-    this.settings = { ...defaults, ...options };
+    this.element = _element;
+    this.options = options as Options;
+    this.settings = { ...NumberClass.defaults, ...options };
 
     this.selectionDirection = 'none';
     this.defaultPrevented = false;
 
     this.allowedEvents = [INPUT];
     this.init();
+  }
+
+  swapSeparators(
+    str: string,
+    oldSeparators: LocalNumber,
+    newSeparators: LocalNumber
+  ) {
+    return str
+      .replace(new RegExp(`[${oldSeparators.decimal}]`, 'g'), '#')
+      .replace(new RegExp(`[${oldSeparators.group}]`, 'g'), newSeparators.group)
+      .replace(/#/g, newSeparators.decimal);
+  }
+
+  update(option: Options) {
+    const oldSeparators = { ...this.localNumber };
+
+    this.settings = { ...this.settings, ...option };
+    if (this.settings.locale) {
+      this.localNumber = getLocaleSeparators(this.settings.locale);
+    }
+
+    if (this._value) {
+      this._formattedValue = this.swapSeparators(
+        this._formattedValue,
+        oldSeparators,
+        this.localNumber
+      );
+    }
+    this._setNewValues(this._createNewValues(this._formattedValue));
   }
 
   onblur = () => {
@@ -218,22 +250,30 @@ class NumberClass extends Emitter implements Number {
     const newString = parsed.toString().replace('-', '');
     const newNumber = Number(parsed);
 
-    if (isStringOrNumber(s.min) && newNumber < +s.min) {
+    if (isStringOrNumber(s.min) && s.min && newNumber < +s.min) {
       console.log('to small, min: ', s.min);
       return false;
     }
 
-    if (isStringOrNumber(s.max) && newNumber > +s.max) {
+    if (isStringOrNumber(s.max) && s.max && newNumber > +s.max) {
       console.log('to big, max: ', s.max);
       return false;
     }
 
-    if (isStringOrNumber(s.minlength) && newString.length < s.minlength) {
+    if (
+      isStringOrNumber(s.minlength) &&
+      s.minlength &&
+      newString.length < s.minlength
+    ) {
       console.log('to short');
       return false;
     }
 
-    if (isStringOrNumber(s.maxlength) && newString.length > s.maxlength) {
+    if (
+      isStringOrNumber(s.maxlength) &&
+      s.maxlength &&
+      newString.length > s.maxlength
+    ) {
       console.log('to long', newString, newString.length, s.maxlength);
       return false;
     }
@@ -245,31 +285,26 @@ class NumberClass extends Emitter implements Number {
     value,
     formattedVal,
   }: {
-    value: number;
+    value: string;
     formattedVal: string;
   }) {
+    // @ts-ignore
     this.setMinus(formattedVal.indexOf('-') >= this.settings.prefix.length);
-    this.element.value = formattedVal;
 
-    const _value = isNaN(value) ? '' : value.toString();
+    value = isNaN(+value) ? '' : value.toString();
+    this.element.value = this._formattedValue = formattedVal;
+    this.element.dataset.value = this._value = value;
 
-    this._value = _value;
-    this._formattedValue = formattedVal;
-    this.element.dataset.value = _value;
-
-    const result = {
-      value: _value,
-      formattedVal,
-    };
-
+    const result = { value, formattedVal };
     this.emit(INPUT, result);
     return result;
   }
 
-  _createNewValues(val: string): { value: number; formattedVal: string } {
+  _createNewValues(val: string): { value: string; formattedVal: string } {
     const s = this.settings;
     // console.log('dataChanged to:', val);
 
+    // val = val.replaceAll(this.localNumber.group, '');
     let { value, formattedVal } = formatNumber(
       val,
       s.locale,
@@ -285,7 +320,7 @@ class NumberClass extends Emitter implements Number {
         formattedVal = s.prefix + formattedVal;
       }
     }
-    return { value, formattedVal };
+    return { value: '' + value, formattedVal };
   }
 
   onbeforeinput = (evt: InputEvent) => {
@@ -301,7 +336,9 @@ class NumberClass extends Emitter implements Number {
     }
 
     const s = this.settings;
-    const prefixLen = s.prefix.length;
+    const prefix = s.prefix || '';
+    const prefixLen = prefix.length;
+
     let val = el.value;
 
     // minus is added
@@ -340,7 +377,7 @@ class NumberClass extends Emitter implements Number {
     const check = this.checkInput();
     if (!check) return;
 
-    if (prefixLen > 0 && val.startsWith(s.prefix)) val = val.slice(prefixLen);
+    if (prefixLen > 0 && val.startsWith(prefix)) val = val.slice(prefixLen);
 
     if (val.startsWith(this.localNumber.decimal)) {
       val = '0' + val; // val = val.slice(1);
@@ -351,7 +388,7 @@ class NumberClass extends Emitter implements Number {
     const { value, formattedVal } = this._createNewValues(val);
 
     let cursorPos = Math.max(
-      s.prefix.length,
+      prefix.length,
       endPosition - el.value.length + formattedVal.length
     );
     if (
@@ -367,9 +404,11 @@ class NumberClass extends Emitter implements Number {
   };
 
   setValue(input: number | string = '') {
-    let parsed = Number(input);
-    if (isNaN(parsed)) return;
-    this._setNewValues(this._createNewValues('' + parsed));
+    let num = Number(input);
+    const parsed = isNaN(num)
+      ? input
+      : ('' + num).replace('.', this.localNumber.decimal);
+    this._setNewValues(this._createNewValues(parsed.toString()));
   }
 
   getValue() {
@@ -382,7 +421,7 @@ class NumberClass extends Emitter implements Number {
 
   kill() {
     // change to text if set to type number
-    this.element.type = this.settings.originalType;
+    this.element.type = this.originalType;
     this.element.value = ''; // TODO: use the last value given!
   }
 
@@ -391,6 +430,9 @@ class NumberClass extends Emitter implements Number {
       throw new Error('Failed to find form, result or num elements');
     }
 
+    if (!this.settings.locale) {
+      throw new Error('no locale defined');
+    }
     this.localNumber = getLocaleSeparators(this.settings.locale);
 
     if (!this.settings.prefix) {
@@ -418,7 +460,7 @@ class NumberClass extends Emitter implements Number {
       '-',
     ];
 
-    this.settings.originalType = this.element.type;
+    this.originalType = this.element.type;
     this.element.setAttribute('type', 'text');
     let inputMode = 'numeric';
 

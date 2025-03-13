@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.6
+### changed
+- test update
+- better type definitions
+- preview / demo update
+
 ## v0.0.5
 ### changed
 - test update

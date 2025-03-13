@@ -13,6 +13,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  touch-action: manipulation;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -60,29 +64,36 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
   margin-block: 1em;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
-button:hover {
+button.active {
+  color: #ffffff;
+  background-color: rgb(215, 79, 0);
+}
+
+/* button:hover {
   border-color: #646cff;
-}
+} */
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: none; /* 4px auto -webkit-focus-ring-color;*/
 }
 
 .main-form input {
-  font-size: 50px;
+  font-size: 36px;
   width: 100%;
   display: block;
   text-align: center;
   border: none;
   background: transparent;
   border-bottom: 1px solid #fff;
-  max-width: 360px;
+  max-width: 420px;
   margin-bottom: 0.5em;
 }
 
 .main-form input.is-negative {
-  color: rgb(191, 79, 79);
+  color: rgb(161, 34, 34);
 }
 
 .main-form input:focus {
@@ -98,18 +109,6 @@ button:focus-visible {
   height: 20px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
 /* inherit styles into the Shadow DOM */
 :host {
   font-size: 16px;
@@ -126,4 +125,34 @@ input {
   padding: 0.25em;
   margin-bottom: 32px;
   height: 20px;
+}
+
+@media screen and (min-width: 400px) {
+  .main-form input {
+    font-size: 44px;
+  }
+}
+
+@media screen and (min-width: 640px) {
+  .main-form input {
+    font-size: 60px;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    color: #1a1a1a;
+    background-color: #d0d0d0;
+  }
+
+  .main-form input {
+    border-bottom-color: #1a1a1a;
+  }
 }

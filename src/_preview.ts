@@ -15,26 +15,57 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <label for="num">Please enter a number</label>
     <button id="rand-button">random number</button>
   </div>
+  <div>
+    <button class="currency active">USD</button>
+    <button class="currency">EUR</button>
+    <button class="currency">GBP</button>
+  </div>
 `;
 
-const options = {
-  startValue: null,
-  prefix: '$ ',
-  showAffixWhenEmpty: true,
-  allowComma: true,
-};
+const settings = [
+  {
+    locale: 'en-US',
+    startValue: generateRandomNumber(100, 2000, 2),
+    prefix: '$ ',
+    showAffixWhenEmpty: true,
+  },
+  {
+    locale: 'de-DE',
+    // startValue: generateRandomNumber(100, 2000, 2),
+    prefix: '€ ',
+    showAffixWhenEmpty: true,
+  },
+  {
+    locale: 'uk-UK',
+    // startValue: generateRandomNumber(100, 2000, 2),
+    prefix: '£ ',
+    showAffixWhenEmpty: true,
+  },
+];
 
-const nc = new NumberClass('#num', options);
+let currentIndex = 0;
+
+const nc = new NumberClass('#num', settings[currentIndex]);
 
 const result = document.querySelector('#result');
 // const keyPressed = document.querySelector('#key-pressed');
 
-function generateRandomNumber(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function generateRandomNumber(
+  min: number,
+  max: number,
+  commaPlaces: number = 0
+) {
+  const integerPart = Math.floor(Math.random() * (max - min + 1)) + min;
+  const decimalPart = commaPlaces
+    ? Math.floor(Math.random() * Math.pow(10, commaPlaces))
+    : 0;
+  return Number(
+    `${integerPart}.${decimalPart.toString().padStart(commaPlaces, '0')}`
+  );
 }
 
 const buttonClicked = () => {
-  const rand = generateRandomNumber(100, 99999);
+  const rand = generateRandomNumber(100, 9999, 2);
   const minus = Math.random() > 0.6 ? '-' : '';
   nc.setValue(minus + rand);
   if (result) result.innerHTML = `value: ${nc.getValue()}`;
@@ -55,4 +86,22 @@ nc.addEventListener('input', (evt) => {
 const randButton = document.querySelector('#rand-button');
 if (randButton) {
   randButton.addEventListener('click', buttonClicked);
+}
+
+const currencyButtons = document.querySelectorAll('.currency');
+const currencyButtonsClicked = (index: number) => {
+  if (currentIndex === index) return;
+  currencyButtons[currentIndex].classList.remove('active');
+  currencyButtons[index].classList.add('active');
+  currentIndex = index;
+  nc.update(settings[index]);
+};
+
+if (currencyButtons) {
+  currencyButtons.forEach((button, index) => {
+    button.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      currencyButtonsClicked(index);
+    });
+  });
 }

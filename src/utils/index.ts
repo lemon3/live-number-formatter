@@ -98,18 +98,18 @@ const parseNumber = (localeString: string): number => {
       result = result.replaceAll(',', '.');
     }
   }
-  console.log(result);
-
   return parseFloat(result);
 };
 
 const getLocaleStorage = new Map();
 const getLocaleSeparators = (locale: string) => {
   if (getLocaleStorage.get(locale)) return getLocaleStorage.get(locale);
+
   const numberFormat = new Intl.NumberFormat(locale, { useGrouping: true });
   const parts = numberFormat.formatToParts(1234.56);
   const decimal = parts?.find((part) => part.type === 'decimal')?.value || '.';
   const group = parts?.find((part) => part.type === 'group')?.value || ',';
+
   const result = { decimal, group };
 
   getLocaleStorage.set(locale, result);
@@ -120,38 +120,44 @@ function parseLocaleNumber(localeString: string = '', locale?: string): number {
   if (!locale) {
     return parseNumber(localeString);
   }
+  // is a correct number
+  // if (!isNaN(Number(localeString))) {
+  //   return Number(localeString);
+  // }
+
   localeString = localeString.replaceAll(' ', '').replace(/[^\d-.,\s]/g, '');
   // if ('number' === typeof localeString) return localeString;
   const { decimal, group } = getLocaleSeparators(locale);
 
-  return parseFloat(
-    localeString
-      // .replace(new RegExp(`[${group}]`, 'g'), '')
-      .replaceAll(group, '')
-      .replace(decimal, '.')
-  );
+  return parseFloat(localeString.replaceAll(group, '').replace(decimal, '.'));
 }
 
+// const _tmp = (val) => {
+//   let res = isNaN(val) ? val.replaceAll('.', '').replace(',', '.') : val;
+//   let [int, comma] = res.split('.');
+//   return Number(int).toLocaleString('de-DE') + (comma ? ',' + comma : '');
+// };
+
 const formatNumber = (
-  value: string | number,
-  locale?: string,
+  value: string,
+  locale: string = 'en-US',
   allowComma: boolean = true,
   maxDecimalPlaces: number = 2
 ): { value: number; formattedVal: string } => {
-  value = '' + value;
+  const { decimal } = getLocaleSeparators(locale);
   let number = parseLocaleNumber(value, locale);
-  if ('' === value || isNaN(number)) {
+
+  if ('' === value || isNaN(+number)) {
     return {
-      value: number,
+      value: +number,
       formattedVal: '',
     };
   }
 
-  const { decimal } = getLocaleSeparators(locale || '');
   const trailingComma = value.toString().endsWith(decimal) ? decimal : '';
-  let [, fractionVal] = value.split(decimal);
+  // let [, fractionVal] = value.split(decimal);
 
-  let [intNum] = ('' + number).split('.');
+  let [intNum, fractionVal] = ('' + number).split('.');
   const intValLocal = Number(intNum).toLocaleString(locale);
   const decimalPlaces = fractionVal?.slice(0, maxDecimalPlaces) || '';
 
