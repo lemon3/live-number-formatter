@@ -142,7 +142,7 @@ const formatNumber = (
   value: string,
   locale: string = 'en-US',
   allowComma: boolean = true,
-  maxDecimalPlaces: number = 2
+  maxDecimalPlaces: number | null = 2
 ): { value: number; formattedVal: string } => {
   const { decimal } = getLocaleSeparators(locale);
   let number = parseLocaleNumber(value, locale);
@@ -159,13 +159,17 @@ const formatNumber = (
 
   let [intNum, fractionVal] = ('' + number).split('.');
   const intValLocal = Number(intNum).toLocaleString(locale);
-  const decimalPlaces = fractionVal?.slice(0, maxDecimalPlaces) || '';
+  let decimalPlaces =
+    0 < (maxDecimalPlaces || 10)
+      ? fractionVal?.slice(0, maxDecimalPlaces || 10)
+      : '';
+
+  const showFraction = fractionVal && allowComma;
 
   return {
-    value: parseFloat(`${intNum}.${decimalPlaces}`),
+    value: parseFloat(showFraction ? `${intNum}.${decimalPlaces}` : intNum),
     formattedVal:
-      intValLocal +
-      (fractionVal && allowComma ? decimal + decimalPlaces : trailingComma),
+      intValLocal + (showFraction ? decimal + decimalPlaces : trailingComma),
   };
 };
 

@@ -27,7 +27,7 @@ class NumberClass extends Emitter implements Number {
     maxlength: null,
     showAffixWhenEmpty: false,
     allowComma: true,
-    maxDecimalPlaces: 2,
+    maxDecimalPlaces: null,
     ltr: true, // TODO: implement -> left to right, default: true
   };
 
@@ -47,7 +47,10 @@ class NumberClass extends Emitter implements Number {
   };
   originalType = '';
 
-  constructor(element: string | null, options?: Options) {
+  constructor(
+    element: string | HTMLInputElement | undefined | null,
+    options?: Options
+  ) {
     super();
 
     const _element =
@@ -56,7 +59,7 @@ class NumberClass extends Emitter implements Number {
         : element;
 
     if (null === _element || !_element) {
-      throw { error: true };
+      throw new Error('no element given');
     }
 
     this.element = _element;
@@ -67,6 +70,7 @@ class NumberClass extends Emitter implements Number {
     this.defaultPrevented = false;
 
     this.allowedEvents = [INPUT];
+
     this.init();
   }
 
@@ -107,6 +111,7 @@ class NumberClass extends Emitter implements Number {
   };
 
   onkeydown = (evt: KeyboardEvent) => {
+    console.log('onkeydown');
     const el = this.element;
     let key = evt.key;
 
@@ -115,42 +120,39 @@ class NumberClass extends Emitter implements Number {
       ((evt.metaKey || evt.ctrlKey) && evt.key === 'c') ||
       (evt.metaKey && !this.arrows.includes(key))
     ) {
-      // Allow cmd+c (or ctrl+c) to copy text
-      return;
+      return false;
     }
 
-    // Prevent default behavior for disallowed keys
-    if (!this.allowedKeys.includes(key)) {
+    const decimal = this.localNumber.decimal;
+    if ('.' === key || ',' === key) key = decimal;
+
+    const cursorStart = el.selectionStart || 0;
+    const cursorEnd = el.selectionEnd || 0;
+    const multi = cursorStart !== cursorEnd;
+    const val = el.value;
+
+    const valRange = val.slice(cursorStart, cursorEnd);
+    const hasDecimal = key === decimal && val.includes(decimal);
+
+    if (hasDecimal && valRange.includes(decimal)) {
+      return false;
+    }
+
+    if (hasDecimal || !this.allowedKeys.includes(key)) {
       evt.stopPropagation();
       evt.preventDefault();
       return false;
     }
 
-    if ('.' === key || ',' === key) key = this.localNumber.decimal;
-    const val = el.value;
-
-    // no double decimal separator
-    if (
-      key === this.localNumber.decimal &&
-      val.includes(this.localNumber.decimal)
-    ) {
-      evt.preventDefault();
-      return;
-    }
-
     const prefix = this.settings.prefix || '';
     const prefixLen = prefix.length;
 
-    if (0 === prefixLen) return;
-
-    const cursorStart = el.selectionStart || 0;
-    const cursorEnd = el.selectionEnd || 0;
-    const multi = cursorStart !== cursorEnd;
+    if (!prefixLen) return;
 
     let end = cursorEnd;
     let start = cursorStart;
 
-    // Handle special keys
+    // Handle special keys, only needed when prefix is used!!!
     switch (evt.key) {
       case 'ArrowLeft':
         if (evt.shiftKey) {
@@ -166,7 +168,7 @@ class NumberClass extends Emitter implements Number {
           evt.preventDefault();
           this.defaultPrevented = true;
         }
-        break;
+        return;
 
       case 'ArrowRight':
         if (evt.shiftKey) {
@@ -179,7 +181,7 @@ class NumberClass extends Emitter implements Number {
           this.defaultPrevented = false;
           this.selectionDirection = 'none';
         }
-        break;
+        return;
 
       case 'ArrowUp':
         end = cursorEnd;
@@ -202,7 +204,7 @@ class NumberClass extends Emitter implements Number {
         el.setSelectionRange(start, end, 'forward');
         evt.preventDefault();
         this.defaultPrevented = true;
-        break;
+        return;
 
       case 'ArrowDown':
         if (evt.shiftKey) {
@@ -215,7 +217,7 @@ class NumberClass extends Emitter implements Number {
           this.defaultPrevented = false;
           this.selectionDirection = 'none';
         }
-        break;
+        return;
 
       case 'Backspace':
         if (cursorStart < prefixLen) {
@@ -223,14 +225,14 @@ class NumberClass extends Emitter implements Number {
         } else if (cursorStart === prefixLen && !multi) {
           evt.preventDefault();
         }
-        break;
+        return;
 
       default:
         if (0 !== cursorStart && cursorStart < prefixLen) {
           el.setSelectionRange(prefixLen, prefixLen);
           // evt.preventDefault();
         }
-        break;
+        return;
     }
   };
 
@@ -324,10 +326,13 @@ class NumberClass extends Emitter implements Number {
   }
 
   onbeforeinput = (evt: InputEvent) => {
+    console.log('onbeforeinput');
     evt.preventDefault();
     const el = this.element;
+    const decimal = this.localNumber.decimal;
+
     let input = evt.data;
-    if ('.' === input || ',' === input) input = this.localNumber.decimal;
+    if ('.' === input || ',' === input) input = decimal;
 
     if ('insertFromPaste' === evt.inputType) {
       let tmp = parseFloat(input || '');
@@ -343,7 +348,6 @@ class NumberClass extends Emitter implements Number {
 
     // minus is added
     if ('-' === input) {
-      // if (!this._value) return;
       val = this.isMinus ? val.replace('-', '') : '-' + val.slice(prefixLen);
       this._setNewValues(this._createNewValues(val));
       return;
@@ -351,9 +355,10 @@ class NumberClass extends Emitter implements Number {
 
     let startPosition = el.selectionStart || 0;
     let endPosition = el.selectionEnd || 0;
+    let multiSelect = startPosition !== endPosition;
 
     // multiSelect
-    if (startPosition !== endPosition) {
+    if (multiSelect) {
       // isDeleting
       if (
         evt.inputType === 'deleteContentForward' ||
@@ -379,24 +384,25 @@ class NumberClass extends Emitter implements Number {
 
     if (prefixLen > 0 && val.startsWith(prefix)) val = val.slice(prefixLen);
 
-    if (val.startsWith(this.localNumber.decimal)) {
-      val = '0' + val; // val = val.slice(1);
-    } else if (val.startsWith(`-${this.localNumber.decimal}`)) {
+    if (val.startsWith('-' + decimal)) {
       val = '-0' + val.slice(1);
+    } else if (val.startsWith(decimal)) {
+      val = '0' + val;
     }
 
     const { value, formattedVal } = this._createNewValues(val);
 
-    let cursorPos = Math.max(
-      prefix.length,
-      endPosition - el.value.length + formattedVal.length
-    );
-    if (
-      'deleteContentForward' === evt.inputType &&
-      startPosition === endPosition // no multiselect
-    ) {
+    let cursorPos =
+      input === decimal
+        ? formattedVal.indexOf(decimal) + 1
+        : Math.max(
+            prefix.length,
+            endPosition - el.value.length + formattedVal.length
+          );
+    if ('deleteContentForward' === evt.inputType && !multiSelect) {
       cursorPos++;
     }
+
     // console.log('>>>', cursorPos);
 
     this._setNewValues({ value, formattedVal });
@@ -405,9 +411,12 @@ class NumberClass extends Emitter implements Number {
 
   setValue(input: number | string = '') {
     let num = Number(input);
-    const parsed = isNaN(num)
+    let parsed = isNaN(num)
       ? input
       : ('' + num).replace('.', this.localNumber.decimal);
+    if (!/^[0-9\-,.]*$/.test('' + parsed)) {
+      parsed = '';
+    }
     this._setNewValues(this._createNewValues(parsed.toString()));
   }
 
@@ -427,18 +436,21 @@ class NumberClass extends Emitter implements Number {
 
   init() {
     if (!this.element) {
-      throw new Error('Failed to find form, result or num elements');
+      throw new Error('Failed to find element');
     }
+    const s = this.settings;
 
-    if (!this.settings.locale) {
+    if (!s.locale) {
       throw new Error('no locale defined');
     }
-    this.localNumber = getLocaleSeparators(this.settings.locale);
 
-    if (!this.settings.prefix) {
-      this.settings.prefix = '';
+    this.localNumber = getLocaleSeparators(s.locale);
+
+    if (!s.prefix) {
+      s.prefix = '';
     }
 
+    this._formattedValue = s.showAffixWhenEmpty ? s.prefix : '';
     this.arrows = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'];
 
     // TODO: '+', 'e',
@@ -461,24 +473,32 @@ class NumberClass extends Emitter implements Number {
     ];
 
     this.originalType = this.element.type;
-    this.element.setAttribute('type', 'text');
     let inputMode = 'numeric';
 
+    if (0 === s.maxDecimalPlaces) {
+      s.allowComma = false;
+    } else if (null === s.maxDecimalPlaces) {
+      s.maxDecimalPlaces = 10;
+    }
+
     // if comma is allowed, add keys to array
-    if (this.settings.allowComma) {
+    if (s.allowComma) {
       this.allowedKeys = [...this.allowedKeys, '.', ','];
       inputMode = 'decimal';
     }
-    this.element.setAttribute('inputmode', inputMode);
+
+    this.element.type = 'text';
+    this.element.pattern = '^-?[0-9.,]*$';
+    this.element.inputMode = inputMode;
 
     this.element.addEventListener('keydown', this.onkeydown);
     this.element.addEventListener('blur', this.onblur);
     this.element.addEventListener('beforeinput', this.onbeforeinput);
 
-    if (this.settings.startValue) {
-      this.setValue(this.settings.startValue);
+    if (s.startValue) {
+      this.setValue(s.startValue);
     } else {
-      this.element.value = this.settings.prefix;
+      this.element.value = s.prefix;
     }
   }
 }

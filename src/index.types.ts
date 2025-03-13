@@ -4,7 +4,7 @@ declare global {
   }
 }
 export interface Options {
-  startValue?: number | null;
+  startValue?: number | string | null;
   prefix?: string | null;
   suffix?: string | null;
   locale?: string;
@@ -14,7 +14,7 @@ export interface Options {
   maxlength?: number | null;
   showAffixWhenEmpty?: boolean;
   allowComma?: boolean;
-  maxDecimalPlaces?: number;
+  maxDecimalPlaces?: number | null;
   ltr?: boolean;
 }
 

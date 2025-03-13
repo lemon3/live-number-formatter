@@ -19,6 +19,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <button class="currency">USD</button>
     <button class="currency">EUR</button>
     <button class="currency">GBP</button>
+    <button class="currency">JPY</button>
   </div>
 `;
 
@@ -41,6 +42,12 @@ const settings = [
     locale: 'uk-UK',
     startValue,
     prefix: '£ ',
+    showAffixWhenEmpty: true,
+  },
+  {
+    locale: 'ja-JP',
+    startValue,
+    prefix: '¥ ',
     showAffixWhenEmpty: true,
   },
 ];
