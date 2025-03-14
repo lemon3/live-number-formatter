@@ -1,69 +1,69 @@
 import { vi, describe, expect, it, beforeEach, afterEach, test } from 'vitest';
-import { NumberClass } from '../src/index';
+import LiveNumberFormatter from '../src/index';
 
 beforeEach(() => {
   globalThis.document = window.document;
   globalThis.window = window;
 });
 
-describe('NumberClass and static methods', () => {
-  it('NumberClass should be an Object', () => {
-    expect(NumberClass).toBeTruthy();
-    expect(typeof NumberClass).toBe('function');
+describe('LiveNumberFormatter and static methods', () => {
+  it('LiveNumberFormatter should be an Object', () => {
+    expect(LiveNumberFormatter).toBeTruthy();
+    expect(typeof LiveNumberFormatter).toBe('function');
   });
 
-  it('NumberClass defaults -> is Object', () => {
-    expect(NumberClass.defaults).toBeTruthy();
-    expect(typeof NumberClass.defaults).toBe('object');
+  it('LiveNumberFormatter defaults -> is Object', () => {
+    expect(LiveNumberFormatter.defaults).toBeTruthy();
+    expect(typeof LiveNumberFormatter.defaults).toBe('object');
   });
 });
 
-describe('NumberClass initialisation', () => {
+describe('LiveNumberFormatter initialisation', () => {
   // beforeEach(() => {
   // });
 
-  it('new NumberClass(el) should be an Object', () => {
+  it('new LiveNumberFormatter(el) should be an Object', () => {
     const inp = document.createElement('input');
-    const nc = new NumberClass(inp);
+    const nc = new LiveNumberFormatter(inp);
     expect(nc).toBeTruthy();
-    expect(nc).instanceOf(NumberClass);
+    expect(nc).instanceOf(LiveNumberFormatter);
     expect(typeof nc).toBe('object');
   });
 
-  it("new NumberClass('string') should be an Object", () => {
+  it("new LiveNumberFormatter('string') should be an Object", () => {
     const inp = document.createElement('input');
     inp.id = 'test';
     document.body.append(inp);
-    const nc = new NumberClass('#test');
+    const nc = new LiveNumberFormatter('#test');
     expect(nc).toBeTruthy();
-    expect(nc).instanceOf(NumberClass);
+    expect(nc).instanceOf(LiveNumberFormatter);
     expect(typeof nc).toBe('object');
 
     inp.remove();
   });
 
-  it('call new NumberClass() without params, should give an error', () => {
+  it('call new LiveNumberFormatter() without params, should give an error', () => {
     const inp = document.getElementById('test');
     expect(() => {
       // @ts-ignore
-      new NumberClass();
+      new LiveNumberFormatter();
     }).toThrowError('no element given');
   });
 
-  it("new NumberClass('string', {}) should be an Object", () => {
+  it("new LiveNumberFormatter('string', {}) should be an Object", () => {
     const inp = document.createElement('input');
     inp.id = 'test';
     document.body.append(inp);
     const options = {};
-    const nc = new NumberClass('#test', options);
+    const nc = new LiveNumberFormatter('#test', options);
     expect(nc).toBeTruthy();
-    expect(nc).instanceOf(NumberClass);
+    expect(nc).instanceOf(LiveNumberFormatter);
     expect(typeof nc).toBe('object');
 
     inp.remove();
   });
 
-  it("new NumberClass('string', options) should be an Object", () => {
+  it("new LiveNumberFormatter('string', options) should be an Object", () => {
     const inp = document.createElement('input');
     const startValue = 1234.44;
     document.body.append(inp);
@@ -75,7 +75,7 @@ describe('NumberClass initialisation', () => {
       allowComma: true,
       maxDecimalPlaces: 2,
     };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('' + startValue);
     expect(nc.getFormattedValue()).toBe('>> 1.234,44');
     expect(nc.element).toBe(inp);
@@ -94,7 +94,7 @@ describe('setValue testing', () => {
     inp.id = 'test';
     document.body.append(inp);
     options = { locale: 'de-DE' };
-    nc = new NumberClass(inp, options);
+    nc = new LiveNumberFormatter(inp, options);
   });
 
   afterEach(() => {
@@ -135,7 +135,7 @@ describe('settings / options testing', () => {
   test("'locale': with empty string", () => {
     const options = { locale: '' };
     expect(() => {
-      new NumberClass(inp, options);
+      new LiveNumberFormatter(inp, options);
     }).toThrowError('no locale defined');
   });
 
@@ -143,7 +143,7 @@ describe('settings / options testing', () => {
     const options = { locale: null };
     expect(() => {
       // @ts-ignore
-      new NumberClass(inp, options);
+      new LiveNumberFormatter(inp, options);
     }).toThrowError('no locale defined');
   });
 
@@ -151,7 +151,7 @@ describe('settings / options testing', () => {
   test("'startValue' with null", () => {
     const startValue = null;
     const options = { startValue };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('');
   });
 
@@ -159,7 +159,7 @@ describe('settings / options testing', () => {
     const startValue = '23dd4';
     const options = { startValue };
     // @ts-ignore
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('');
   });
 
@@ -167,7 +167,7 @@ describe('settings / options testing', () => {
     const startValue = '-17234.56';
     const options = { startValue };
     // @ts-ignore
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('-17234.56');
   });
 
@@ -175,14 +175,14 @@ describe('settings / options testing', () => {
   test("'prefix' with null", () => {
     const prefix = null;
     const options = { prefix };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getFormattedValue()).toBe('');
   });
 
   test("'prefix' with '>> '", () => {
     const prefix = '>> ';
     const options = { prefix };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getFormattedValue()).toBe('');
     nc.setValue(123.4);
     expect(nc.getFormattedValue()).toBe(prefix + '123.4');
@@ -192,14 +192,14 @@ describe('settings / options testing', () => {
   test("'allowComma': 'false'", () => {
     const startValue = '1234.56';
     const options = { allowComma: false, startValue };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('1234');
   });
 
   test("'allowComma': 'true'", () => {
     const startValue = '1234.56';
     const options = { allowComma: true, startValue };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('1234.56');
   });
 
@@ -207,7 +207,7 @@ describe('settings / options testing', () => {
   test("'showAffixWhenEmpty': 'true'", () => {
     const prefix = ':-)';
     const options = { showAffixWhenEmpty: true, prefix };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('');
     expect(nc.getFormattedValue()).toBe(prefix);
   });
@@ -215,7 +215,7 @@ describe('settings / options testing', () => {
   test("'showAffixWhenEmpty': 'false'", () => {
     const prefix = ':-)';
     const options = { showAffixWhenEmpty: false, prefix };
-    const nc = new NumberClass(inp, options);
+    const nc = new LiveNumberFormatter(inp, options);
     expect(nc.getValue()).toBe('');
     expect(nc.getFormattedValue()).toBe('');
   });
@@ -231,7 +231,7 @@ describe('beforeinput event', () => {
     input = document.createElement('input');
     document.body.appendChild(input);
 
-    nc = new NumberClass(input);
+    nc = new LiveNumberFormatter(input);
     beforeinputSpy = vi.spyOn(nc, 'onbeforeinput');
     // input.onbeforeinput = (event) => {
     //   console.log(event.data);
@@ -284,7 +284,7 @@ describe('keydown event', () => {
   beforeEach(() => {
     input = document.createElement('input');
     document.body.appendChild(input);
-    nc = new NumberClass(input);
+    nc = new LiveNumberFormatter(input);
 
     beforeinputSpy = vi.spyOn(nc, 'onbeforeinput');
     keydownSpy = vi.spyOn(nc, 'onkeydown');
