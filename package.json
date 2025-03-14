@@ -1,19 +1,19 @@
 {
   "name": "live-number-formatter",
   "private": false,
-  "version": "0.0.6",
+  "version": "0.0.7",
   "packageManager": "pnpm@9.11.0",
   "description": "a live number formatter",
   "author": "wolfgang jungmayer",
   "license": "MIT",
-  "browser": "./dist/live-number-formatter.umd.js",
+  "browser": "dist/live-number-formatter.umd.js",
   "type": "module",
-  "main": "./dist/live-number-formatter.umd.js",
+  "main": "dist/live-number-formatter.umd.js",
   "module": "./dist/live-number-formatter.js",
   "exports": {
     ".": {
-      "import": "./live-number-formatter.js",
-      "require": "./live-number-formatter.umd.js"
+      "import": "./dist/live-number-formatter.js",
+      "require": "./dist/live-number-formatter.umd.js"
     }
   },
   "homepage": "https://github.com/lemon3/live-number-formatter",
