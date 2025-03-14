@@ -2,9 +2,21 @@
   "name": "live-number-formatter",
   "private": false,
   "version": "0.0.6",
-  "type": "module",
   "packageManager": "pnpm@9.11.0",
-  "homepage": "https://github.com/lemon3",
+  "description": "a live number formatter",
+  "author": "wolfgang jungmayer",
+  "license": "MIT",
+  "browser": "./dist/live-number-formatter.umd.js",
+  "type": "module",
+  "main": "./dist/live-number-formatter.umd.js",
+  "module": "./dist/live-number-formatter.js",
+  "exports": {
+    ".": {
+      "import": "./live-number-formatter.js",
+      "require": "./live-number-formatter.umd.js"
+    }
+  },
+  "homepage": "https://github.com/lemon3/live-number-formatter",
   "scripts": {
     "dev": "vite",
     "test": "vitest",
@@ -12,6 +24,24 @@
     "build": "tsc && vite build",
     "demo": "vite build --config vite.config.demo.js",
     "preview": "vite preview"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist",
+    "index.js"
+  ],
+  "keywords": [
+    "live",
+    "number",
+    "formatter",
+    "format",
+    "input",
+    "input-field"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lemon3/live-number-formatter.git"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",

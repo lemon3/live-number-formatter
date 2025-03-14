@@ -5,7 +5,8 @@
 
 > currently (beta)
 
-is an input field designed for numbers, which live formats the entered number.
+Is an input field for numbers that formats the entered number live.
+
 
 ## demo
 ### [go to the demo >>](https://lemon3.github.io/live-number-formatter/)
@@ -13,9 +14,21 @@ is an input field designed for numbers, which live formats the entered number.
 ![demo](https://raw.githubusercontent.com/lemon3/live-number-formatter/refs/heads/main/_assets/demo.gif)
 
 ## usage
-```js
-// todo
+```Bash
+pnpm add live-number-formatter
 ```
+
+```js
+import LiveNumberFormatter from 'live-number-formatter';
+
+const numberField = document.querySelector('#numberField');
+const options = {
+  prefix: '$ ',
+}; // see below
+
+const lnf = new LiveNumberFormatter(numberField, options);
+```
+
 
 ## options
 ```js
@@ -25,6 +38,8 @@ const options = {
 
   // the number prefix, e.g.: '€ '
   prefix: null,
+
+  locale: 'en-US',
 
   // the min value
   min: null,
@@ -39,10 +54,13 @@ const options = {
   maxlength: null,
 
   // shot the prefix if the field is empty
-  showAffixWhenEmpty: true,
+  showAffixWhenEmpty: false,
 
   // allow comma numbers, e.g.: 12.4
   allowComma: true,
+
+  // max number of decimal Places
+  maxDecimalPlaces: 2,
 };
 ```
 

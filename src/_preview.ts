@@ -1,4 +1,4 @@
-import { NumberClass } from './index.ts';
+import LiveNumberFormatter from './index.ts';
 import './_preview.css';
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -54,7 +54,7 @@ const settings = [
 
 let currentIndex = 0;
 
-const nc = new NumberClass('#num', settings[currentIndex]);
+const nc = new LiveNumberFormatter('#num', settings[currentIndex]);
 
 const result = document.querySelector('#result');
 // const keyPressed = document.querySelector('#key-pressed');

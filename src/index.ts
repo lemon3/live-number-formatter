@@ -111,7 +111,7 @@ class NumberClass extends Emitter implements Number {
   };
 
   onkeydown = (evt: KeyboardEvent) => {
-    console.log('onkeydown');
+    // console.log('onkeydown');
     const el = this.element;
     let key = evt.key;
 
@@ -253,12 +253,12 @@ class NumberClass extends Emitter implements Number {
     const newNumber = Number(parsed);
 
     if (isStringOrNumber(s.min) && s.min && newNumber < +s.min) {
-      console.log('to small, min: ', s.min);
+      // console.log('to small, min: ', s.min);
       return false;
     }
 
     if (isStringOrNumber(s.max) && s.max && newNumber > +s.max) {
-      console.log('to big, max: ', s.max);
+      // console.log('to big, max: ', s.max);
       return false;
     }
 
@@ -267,7 +267,7 @@ class NumberClass extends Emitter implements Number {
       s.minlength &&
       newString.length < s.minlength
     ) {
-      console.log('to short');
+      // console.log('to short');
       return false;
     }
 
@@ -276,7 +276,7 @@ class NumberClass extends Emitter implements Number {
       s.maxlength &&
       newString.length > s.maxlength
     ) {
-      console.log('to long', newString, newString.length, s.maxlength);
+      // console.log('to long', newString, newString.length, s.maxlength);
       return false;
     }
 
@@ -326,7 +326,7 @@ class NumberClass extends Emitter implements Number {
   }
 
   onbeforeinput = (evt: InputEvent) => {
-    console.log('onbeforeinput');
+    // console.log('onbeforeinput');
     evt.preventDefault();
     const el = this.element;
     const decimal = this.localNumber.decimal;
@@ -503,4 +503,4 @@ class NumberClass extends Emitter implements Number {
   }
 }
 
-export { NumberClass };
+export default NumberClass;
