@@ -47,12 +47,6 @@ const options = {
   // the max value
   max: null,
 
-  // the min length of the number
-  minlength: null,
-
-  // the max length of the number, eg.
-  maxlength: null,
-
   // shot the prefix if the field is empty
   showAffixWhenEmpty: false,
 

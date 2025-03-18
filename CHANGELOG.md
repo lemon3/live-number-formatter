@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.8
+### changed
+- remove options minlength, maxlength
+- use constant names
+- replace array with allowed keys with a Set (for faster lookup speeds)
+
+## v0.0.7
+### changed
+- test update
+
 ## v0.0.6
 ### changed
 - test update

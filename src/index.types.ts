@@ -31,7 +31,7 @@ export interface Number {
   defaultPrevented: boolean;
   isMinus: boolean;
   arrows: string[];
-  allowedKeys: string[];
+  allowedKeys: Set<string>;
   error: boolean;
   localNumber: LocalNumber;
 

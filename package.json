@@ -1,7 +1,7 @@
 {
   "name": "live-number-formatter",
   "private": false,
-  "version": "0.0.7",
+  "version": "0.0.8",
   "packageManager": "pnpm@9.11.0",
   "description": "a live number formatter",
   "author": "wolfgang jungmayer",
@@ -45,12 +45,12 @@
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
-    "@vitest/coverage-v8": "3.0.7",
+    "@vitest/coverage-v8": "3.0.9",
     "jsdom": "^26.0.0",
-    "prettier": "^3.5.2",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0",
+    "prettier": "^3.5.3",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.2",
     "vite-plugin-banner": "^0.8.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.9"
   }
 }
