@@ -47,7 +47,7 @@ const options = {
   // the max value
   max: null,
 
-  // shot the prefix if the field is empty
+  // show the prefix if the field is empty
   showAffixWhenEmpty: false,
 
   // allow comma numbers, e.g.: 12.4
